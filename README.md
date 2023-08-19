@@ -1,4 +1,4 @@
-# Shitty Automated HoloCure fishing
+# Automated HoloCure fishing
 
 This project aims to automate the fishing in HoloCure
 
