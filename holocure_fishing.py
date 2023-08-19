@@ -1,7 +1,7 @@
 #! C:\Users\minec\Documents\Python\holocure-fishing\fishing\Scripts\python.exe
 import pyautogui
 import time
-import win32api, win32con, win32gui, win32ui
+import win32con, win32gui, win32ui
 from threading import Thread
 import threading
 
@@ -61,7 +61,7 @@ def press(button_key):
     hwndMain = win32gui.FindWindow(None, "HoloCure")
     win = win32ui.CreateWindowFromHandle(hwndMain)
     win.SendMessage(win32con.WM_KEYDOWN, button[button_key], 0)
-    time.sleep(0.01)
+    time.sleep(0.05)
     win.SendMessage(win32con.WM_KEYUP, button[button_key], 0)
 
 
@@ -69,7 +69,7 @@ def continue_fishing():
     while not stop_thread.is_set():
         if pyautogui.locateOnScreen("./img/ok.png", confidence=0.6):
             press(ENTER)
-            time.sleep(0.01)
+            time.sleep(0.1)
             press(ENTER)
         time.sleep(0.5)
 
@@ -83,47 +83,59 @@ def fishing():
             print(hit_area)
 
         if hit_area:
-            pic = pyautogui.screenshot(region=(hit_area.left+15, hit_area.top+30, 1, hit_area.height-30))
+            region = (hit_area.left+13, hit_area.top+24, hit_area.width-13, hit_area.height-30)
+            pic = pyautogui.screenshot(region=region)
             # UP = 225, 50, 50
             # DOWN = 52,144,245
             # LEFT = 246, 198, 67
             # RIGHT = 45, 236, 43
             # ENTER = 174, 49, 208
 
-            _, h = pic.size
+            w, h = pic.size
 
             press_button = ""
-            
-            for x in range(0, h):
-                r,g,b = pic.getpixel((0,x))
+            for x in range(0, w, 2):
+                if press_button: break
+                for y in range(0, h):
+                    r,g,b = pic.getpixel((x,y))
 
-                # enter
-                if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
-                    press_button = ENTER
-                    break
+                    # enter
+                    if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
+                        press_button = ENTER
+                        # found = press(ENTER)
+                        # break
 
-                # left
-                elif r in range(242, 250) and g in range(194, 202) and b in range(63, 71):
-                    press_button = LEFT
-                    break
+                    # left
+                    elif r in range(242, 250) and g in range(194, 202) and b in range(63, 71):
+                        press_button = LEFT
+                        # found = press(LEFT)
+                        # break
 
-                # right
-                elif r in range(43, 47) and g in range(234, 238) and b in range(41, 45):
-                    press_button = RIGHT
-                    break
-                
-                # down
-                elif r in range(50, 54) and g in range(142, 146) and b in range(243, 247):
-                    press_button = DOWN
-                    break
+                    # right
+                    elif r in range(43, 47) and g in range(234, 238) and b in range(41, 45):
+                        press_button = RIGHT
+                        # found = press(RIGHT)
+                        # break
+                    
+                    # down
+                    elif r in range(50, 54) and g in range(142, 146) and b in range(243, 247):
+                        press_button = DOWN
+                        # found = press(DOWN)
+                        # break
 
-                # up
-                elif r in range(223, 227) and g in range(48, 52) and b in range(48, 52):
-                    press_button = UP
-                    break
+                    # up
+                    elif r in range(223, 227) and g in range(48, 52) and b in range(48, 52):
+                        press_button = UP
+                        # found = press(UP)
+                        # break
 
-            if press_button:
-                press(press_button)
+                    if press_button:
+                        press(press_button)
+                        # pyautogui.screenshot("Screen.png", region=region)
+                        break
+
+            # if press_button:
+            #     press(press_button)
 
                 
 
