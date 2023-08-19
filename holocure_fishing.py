@@ -75,12 +75,18 @@ def continue_fishing():
 
 
 def fishing():
+    print("Welcome to Automated HoloCure Fishing!")
+    print("Please open holocure, go to holo house, and start fishing!")
     hit_area = None
     while True:
         if not hit_area:
             hit_area = pyautogui.locateOnScreen("./img/box.png", confidence=0.6)
-            print("Finding...")
-            print(hit_area)
+            if hit_area:
+                print("Found Area!")
+                print(hit_area)
+                print("Please don't move/close/minimize the holocure window.")
+                print("You can do other tasks as long as holocure window is visible.")
+                print("However, doing heavy tasks may affect the program's ability to fish.")
 
         if hit_area:
             region = (hit_area.left+13, hit_area.top+24, hit_area.width-13, hit_area.height-30)
