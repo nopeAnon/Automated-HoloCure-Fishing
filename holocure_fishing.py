@@ -91,7 +91,7 @@ def fishing():
                 # enter
                 # if (r,g,b) == (174, 49, 208):
                 if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
-                    press_button = 'j'
+                    press_button = 'z'
                     break
 
                 # left
