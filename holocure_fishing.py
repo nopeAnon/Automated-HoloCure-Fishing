@@ -11,7 +11,7 @@ UP = 'w'
 DOWN = 's'
 LEFT = 'a'
 RIGHT = 'd'
-ENTER = 'x'
+ENTER = 'z'
 
 
 
@@ -90,7 +90,7 @@ def fishing():
             # RIGHT = 45, 236, 43
             # ENTER = 174, 49, 208
 
-            h = pic.size
+            _, h = pic.size
 
             press_button = ""
             
