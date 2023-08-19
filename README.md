@@ -1,8 +1,8 @@
 # Automated HoloCure fishing
-
+![](./Readme_imgs/HighScore.png)
 This project aims to automate the fishing in HoloCure
 
-To make this work, play HoloCure in **windowed mode** and **don't move** the window once you have started fishing
+To make this work, play HoloCure in **windowed mode at 1280x720** and **don't move/minimize** the window once you have started fishing
 
 # To use the program, 
 1. Clone this project
@@ -14,3 +14,9 @@ To make this work, play HoloCure in **windowed mode** and **don't move** the win
 # Requirements
 * python
 * pyautogui (`pip install pyautogui`)
+
+# Tip
+The best area to fish is on the upper left side of the pond.
+This will eliminate possible disturbances to the hit area.
+![](./Readme_imgs/BestArea.png)
+
