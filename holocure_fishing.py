@@ -5,6 +5,16 @@ import win32api, win32con, win32gui, win32ui
 from threading import Thread
 import threading
 
+# Config
+
+UP = 'w'
+DOWN = 's'
+LEFT = 'a'
+RIGHT = 'd'
+ENTER = 'x'
+
+
+
 button = {
     '0':0x30,
     '1':0x31,
@@ -58,9 +68,9 @@ def press(button_key):
 def continue_fishing():
     while not stop_thread.is_set():
         if pyautogui.locateOnScreen("./img/ok.png", confidence=0.6):
-            press('j')
+            press(ENTER)
             time.sleep(0.01)
-            press('j')
+            press(ENTER)
         time.sleep(0.5)
 
 
@@ -74,14 +84,13 @@ def fishing():
 
         if hit_area:
             pic = pyautogui.screenshot(region=(hit_area.left+15, hit_area.top+30, 1, hit_area.height-30))
-            # right = 45, 236, 43
-            # up = 225, 50, 50
-            # e = 174, 49, 208
-            # l = 246, 198, 67
-            # d = 52,144,245
+            # UP = 225, 50, 50
+            # DOWN = 52,144,245
+            # LEFT = 246, 198, 67
+            # RIGHT = 45, 236, 43
+            # ENTER = 174, 49, 208
 
-
-            w, h = pic.size
+            h = pic.size
 
             press_button = ""
             
@@ -89,33 +98,28 @@ def fishing():
                 r,g,b = pic.getpixel((0,x))
 
                 # enter
-                # if (r,g,b) == (174, 49, 208):
                 if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
-                    press_button = 'z'
+                    press_button = ENTER
                     break
 
                 # left
-                # if (r,g,b) == (246, 198, 67):
                 elif r in range(242, 250) and g in range(194, 202) and b in range(63, 71):
-                    press_button = 'a'
+                    press_button = LEFT
                     break
 
                 # right
-                # if (r,g,b) == (45, 236, 43):
                 elif r in range(43, 47) and g in range(234, 238) and b in range(41, 45):
-                    press_button = 'd'
+                    press_button = RIGHT
                     break
                 
                 # down
-                # if (r,g,b) == (52,144,245):
                 elif r in range(50, 54) and g in range(142, 146) and b in range(243, 247):
-                    press_button = 's'
+                    press_button = DOWN
                     break
 
                 # up
-                # if (r,g,b) == (225, 50, 50):
                 elif r in range(223, 227) and g in range(48, 52) and b in range(48, 52):
-                    press_button = 'w'
+                    press_button = UP
                     break
 
             if press_button:
@@ -131,9 +135,3 @@ try:
 except(KeyboardInterrupt, SystemExit):
     stop_thread.set()
     t1.join()
-
-
-
-            
-
-    # time.sleep(0.1)
