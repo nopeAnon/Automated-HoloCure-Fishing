@@ -90,7 +90,7 @@ def fishing():
                 print("However, doing heavy tasks may affect the program's ability to fish.")
 
         if hit_area:
-            region = (hit_area.left+13, hit_area.top+24, hit_area.width-13, hit_area.height-30)
+            region = (hit_area.left+13, hit_area.top+24, hit_area.width, hit_area.height-30)
             pic = pyautogui.screenshot(region=region)
             # UP = 225, 50, 50
             # DOWN = 52,144,245
