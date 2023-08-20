@@ -7,8 +7,8 @@ import threading
 from pathlib import Path
 import os
 
-# Config
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 
 def getconfig():
     with open(f"{Path.home()}/AppData/Local/HoloCure/settings.json") as config_file:
@@ -17,6 +17,37 @@ def getconfig():
         if keybinds:
             return keybinds
         return ['z', 'x', 'a', 'd', 'w', 's']
+
+
+# Config
+SPACE, _, LEFT, RIGHT, UP, DOWN = getconfig()
+up_color = (225, 50, 50)
+down_color = (52,144,245)
+left_color = (246, 198, 67)
+right_color = (45, 236, 43)
+space_color = (174, 49, 208)
+color_tolerance = 10
+
+space_r_range = range(space_color[0]-color_tolerance, space_color[0]+color_tolerance)
+space_g_range = range(space_color[1]-color_tolerance, space_color[1]+color_tolerance)
+space_b_range = range(space_color[2]-color_tolerance, space_color[2]+color_tolerance)
+
+up_r_range = range(up_color[0]-color_tolerance, up_color[0]+color_tolerance)
+up_g_range = range(up_color[1]-color_tolerance, up_color[1]+color_tolerance)
+up_b_range = range(up_color[2]-color_tolerance, up_color[2]+color_tolerance)
+
+down_r_range = range(down_color[0]-color_tolerance, down_color[0]+color_tolerance)
+down_g_range = range(down_color[1]-color_tolerance, down_color[1]+color_tolerance)
+down_b_range = range(down_color[2]-color_tolerance, down_color[2]+color_tolerance)
+
+left_r_range = range(left_color[0]-color_tolerance, left_color[0]+color_tolerance)
+left_g_range = range(left_color[1]-color_tolerance, left_color[1]+color_tolerance)
+left_b_range = range(left_color[2]-color_tolerance, left_color[2]+color_tolerance)
+
+right_r_range = range(right_color[0]-color_tolerance, right_color[0]+color_tolerance)
+right_g_range = range(right_color[1]-color_tolerance, right_color[1]+color_tolerance)
+right_b_range = range(right_color[2]-color_tolerance, right_color[2]+color_tolerance)
+
 
 
 
@@ -81,12 +112,11 @@ def continue_fishing():
             press('enter')
         time.sleep(0.5)
 
-
 def fishing():
     print("Welcome to Automated HoloCure Fishing!")
     print("Please open holocure, go to holo house, and start fishing!")
-    SPACE, _, LEFT, RIGHT, UP, DOWN = getconfig()
     hit_area = None
+    region = None
     # i = 0
     while True:
         if not hit_area:
@@ -97,9 +127,9 @@ def fishing():
                 print("Please don't move/close/minimize the holocure window.")
                 print("You can do other tasks as long as holocure window is visible.")
                 print("However, doing heavy tasks may affect the program's ability to fish.")
+                region = (hit_area.left+14, hit_area.top+24, hit_area.width-16, hit_area.height-30)
 
-        if hit_area:
-            region = (hit_area.left+14, hit_area.top+24, hit_area.width-16, hit_area.height-30)
+        if hit_area and region:
             pic = pyautogui.screenshot(region=region)
             # UP = 225, 50, 50
             # DOWN = 52,144,245
@@ -110,29 +140,29 @@ def fishing():
             w, h = pic.size
 
             press_button = ""
-            for x in range(0, w,2):
+            for x in range(0, w, 2):
                 if press_button: break
                 for y in range(0, h):
                     r,g,b = pic.getpixel((x,y))
 
                     # SPACE
-                    if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
+                    if r in space_r_range and g in space_g_range and b in space_b_range:
                         press_button = SPACE
 
                     # left
-                    elif r in range(242, 250) and g in range(194, 202) and b in range(63, 71):
+                    elif r in left_r_range and g in left_g_range and b in left_b_range:
                         press_button = LEFT
 
                     # right
-                    elif r in range(43, 47) and g in range(234, 238) and b in range(41, 45):
+                    elif r in right_r_range and g in right_g_range and b in right_b_range:
                         press_button = RIGHT
                     
                     # down
-                    elif r in range(50, 54) and g in range(142, 146) and b in range(243, 247):
+                    elif r in down_r_range and g in down_g_range and b in down_b_range:
                         press_button = DOWN
 
                     # up
-                    elif r in range(223, 227) and g in range(48, 52) and b in range(48, 52):
+                    elif r in up_r_range and g in up_g_range and b in up_b_range:
                         press_button = UP
 
                     if press_button:
