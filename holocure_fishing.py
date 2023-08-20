@@ -26,7 +26,7 @@ down_color = (52,144,245)
 left_color = (246, 198, 67)
 right_color = (45, 236, 43)
 space_color = (174, 49, 208)
-color_tolerance = 10
+color_tolerance = 3
 
 space_r_range = range(space_color[0]-color_tolerance, space_color[0]+color_tolerance)
 space_g_range = range(space_color[1]-color_tolerance, space_color[1]+color_tolerance)
