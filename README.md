@@ -12,8 +12,15 @@ To make this work, play HoloCure in **windowed mode at 1280x720** and **don't mo
 1. Enjoy
 
 # Requirements
+If you have python installed, run:
+`pip install -r requirements.txt`
+
+Or
+
 * python
 * pyautogui (`pip install pyautogui`)
+* pywin32 (`pip install pypiwin32`)
+* opencv-python (pip install opencv-python)
 
 # Tip
 The best area to fish is on the upper left side of the pond.
