@@ -5,8 +5,10 @@ import win32con, win32gui, win32ui
 from threading import Thread
 import threading
 from pathlib import Path
+import os
 
 # Config
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def getconfig():
     with open(f"{Path.home()}/AppData/Local/HoloCure/settings.json") as config_file:
@@ -55,7 +57,7 @@ button = {
     'x':0x58,
     'y':0x59,
     'z':0x5A,
-    'spacebar':0x20,
+    'space':0x20,
     'enter':0x0D,
 }
 
@@ -67,15 +69,15 @@ def press(button_key: str):
     hwndMain = win32gui.FindWindow(None, "HoloCure")
     win = win32ui.CreateWindowFromHandle(hwndMain)
     win.SendMessage(win32con.WM_KEYDOWN, button[button_key], 0)
-    time.sleep(0.05)
+    time.sleep(0.1)
     win.SendMessage(win32con.WM_KEYUP, button[button_key], 0)
+    time.sleep(0.1)
 
 
 def continue_fishing():
     while not stop_thread.is_set():
-        if pyautogui.locateOnScreen("./img/ok.png", confidence=0.6):
+        if pyautogui.locateOnScreen(f"{dir_path}/img/ok.png", confidence=0.6):
             press('enter')
-            time.sleep(0.1)
             press('enter')
         time.sleep(0.5)
 
@@ -88,7 +90,7 @@ def fishing():
     # i = 0
     while True:
         if not hit_area:
-            hit_area = pyautogui.locateOnScreen("./img/box.png", confidence=0.6)
+            hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/box.png", confidence=0.6)
             if hit_area:
                 print("Found Area!")
                 print(hit_area)
@@ -138,9 +140,6 @@ def fishing():
                         # pyautogui.screenshot(f"Screen_{i}.png", region=region)
                         # i += 1
                         break
-
-            # if press_button:
-            #     press(press_button)
 
                 
 
