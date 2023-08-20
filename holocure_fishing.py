@@ -1,17 +1,21 @@
 #! C:\Users\minec\Documents\Python\holocure-fishing\fishing\Scripts\python.exe
 import pyautogui
 import time
+import json
 import win32con, win32gui, win32ui
 from threading import Thread
 import threading
+from pathlib import Path
 
 # Config
 
-UP = 'w'
-DOWN = 's'
-LEFT = 'a'
-RIGHT = 'd'
-SPACE = 'spacebar'
+def getconfig():
+    with open(f"{Path.home()}/AppData/Local/HoloCure/settings.json") as config_file:
+        config = json.load(config_file)
+        keybinds = config.get("theButtons")
+        if keybinds:
+            return keybinds
+        return ['z', 'x', 'a', 'd', 'w', 's']
 
 
 
@@ -58,7 +62,8 @@ button = {
 
 stop_thread = threading.Event()
 
-def press(button_key):
+def press(button_key: str):
+    button_key = button_key.lower()
     print("pressing ", button_key)
     hwndMain = win32gui.FindWindow(None, "HoloCure")
     win = win32ui.CreateWindowFromHandle(hwndMain)
@@ -79,6 +84,7 @@ def continue_fishing():
 def fishing():
     print("Welcome to Automated HoloCure Fishing!")
     print("Please open holocure, go to holo house, and start fishing!")
+    SPACE, _, LEFT, RIGHT, UP, DOWN = getconfig()
     hit_area = None
     # i = 0
     while True:
@@ -103,7 +109,7 @@ def fishing():
             w, h = pic.size
 
             press_button = ""
-            for x in range(0, w, 3):
+            for x in range(0, w):
                 if press_button: break
                 for y in range(0, h):
                     r,g,b = pic.getpixel((x,y))
@@ -111,32 +117,22 @@ def fishing():
                     # SPACE
                     if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
                         press_button = SPACE
-                        # found = press(SPACE)
-                        # break
 
                     # left
                     elif r in range(242, 250) and g in range(194, 202) and b in range(63, 71):
                         press_button = LEFT
-                        # found = press(LEFT)
-                        # break
 
                     # right
                     elif r in range(43, 47) and g in range(234, 238) and b in range(41, 45):
                         press_button = RIGHT
-                        # found = press(RIGHT)
-                        # break
                     
                     # down
                     elif r in range(50, 54) and g in range(142, 146) and b in range(243, 247):
                         press_button = DOWN
-                        # found = press(DOWN)
-                        # break
 
                     # up
                     elif r in range(223, 227) and g in range(48, 52) and b in range(48, 52):
                         press_button = UP
-                        # found = press(UP)
-                        # break
 
                     if press_button:
                         press(press_button)
