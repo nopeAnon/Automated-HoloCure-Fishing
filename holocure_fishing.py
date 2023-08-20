@@ -69,9 +69,9 @@ def press(button_key: str):
     hwndMain = win32gui.FindWindow(None, "HoloCure")
     win = win32ui.CreateWindowFromHandle(hwndMain)
     win.SendMessage(win32con.WM_KEYDOWN, button[button_key], 0)
-    time.sleep(0.1)
+    time.sleep(0.05)
     win.SendMessage(win32con.WM_KEYUP, button[button_key], 0)
-    time.sleep(0.1)
+    time.sleep(0.05)
 
 
 def continue_fishing():
@@ -110,7 +110,7 @@ def fishing():
             w, h = pic.size
 
             press_button = ""
-            for x in range(0, w):
+            for x in range(0, w,2):
                 if press_button: break
                 for y in range(0, h):
                     r,g,b = pic.getpixel((x,y))
