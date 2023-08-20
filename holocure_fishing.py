@@ -11,7 +11,7 @@ UP = 'w'
 DOWN = 's'
 LEFT = 'a'
 RIGHT = 'd'
-ENTER = 'spacebar'
+SPACE = 'spacebar'
 
 
 
@@ -53,6 +53,7 @@ button = {
     'y':0x59,
     'z':0x5A,
     'spacebar':0x20,
+    'enter':0x0D,
 }
 
 stop_thread = threading.Event()
@@ -69,9 +70,9 @@ def press(button_key):
 def continue_fishing():
     while not stop_thread.is_set():
         if pyautogui.locateOnScreen("./img/ok.png", confidence=0.6):
-            press(ENTER)
+            press('enter')
             time.sleep(0.1)
-            press(ENTER)
+            press('enter')
         time.sleep(0.5)
 
 
@@ -79,6 +80,7 @@ def fishing():
     print("Welcome to Automated HoloCure Fishing!")
     print("Please open holocure, go to holo house, and start fishing!")
     hit_area = None
+    # i = 0
     while True:
         if not hit_area:
             hit_area = pyautogui.locateOnScreen("./img/box.png", confidence=0.6)
@@ -90,26 +92,26 @@ def fishing():
                 print("However, doing heavy tasks may affect the program's ability to fish.")
 
         if hit_area:
-            region = (hit_area.left+13, hit_area.top+24, hit_area.width, hit_area.height-30)
+            region = (hit_area.left+14, hit_area.top+24, hit_area.width-16, hit_area.height-30)
             pic = pyautogui.screenshot(region=region)
             # UP = 225, 50, 50
             # DOWN = 52,144,245
             # LEFT = 246, 198, 67
             # RIGHT = 45, 236, 43
-            # ENTER = 174, 49, 208
+            # SPACE = 174, 49, 208
 
             w, h = pic.size
 
             press_button = ""
-            for x in range(0, w, 2):
+            for x in range(0, w, 3):
                 if press_button: break
                 for y in range(0, h):
                     r,g,b = pic.getpixel((x,y))
 
-                    # enter
+                    # SPACE
                     if r in range(172, 176) and g in range(47, 51) and b in range(206, 210):
-                        press_button = ENTER
-                        # found = press(ENTER)
+                        press_button = SPACE
+                        # found = press(SPACE)
                         # break
 
                     # left
@@ -138,7 +140,8 @@ def fishing():
 
                     if press_button:
                         press(press_button)
-                        # pyautogui.screenshot("Screen.png", region=region)
+                        # pyautogui.screenshot(f"Screen_{i}.png", region=region)
+                        # i += 1
                         break
 
             # if press_button:
