@@ -1,4 +1,3 @@
-#! C:\Users\minec\Documents\Python\holocure-fishing\fishing\Scripts\python.exe
 import pyautogui
 import time
 import json
