@@ -11,7 +11,7 @@ UP = 'w'
 DOWN = 's'
 LEFT = 'a'
 RIGHT = 'd'
-ENTER = 'z'
+ENTER = 'spacebar'
 
 
 
@@ -51,7 +51,8 @@ button = {
     'w':0x57,
     'x':0x58,
     'y':0x59,
-    'z':0x5A
+    'z':0x5A,
+    'spacebar':0x20,
 }
 
 stop_thread = threading.Event()
