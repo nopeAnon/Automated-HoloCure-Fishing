@@ -98,11 +98,16 @@ button = {
 
 stop_thread = threading.Event()
 
+win = None
+def get_holocure_window():
+    hwndMain = win32gui.FindWindow(None, "HoloCure")
+    global win
+    win = win32ui.CreateWindowFromHandle(hwndMain)
+
 def press(button_key: str):
+    if not win: return
     button_key = button_key.lower()
     print("pressing ", button_key)
-    hwndMain = win32gui.FindWindow(None, "HoloCure")
-    win = win32ui.CreateWindowFromHandle(hwndMain)
     win.SendMessage(win32con.WM_KEYDOWN, button[button_key], 0)
     time.sleep(0.05)
     win.SendMessage(win32con.WM_KEYUP, button[button_key], 0)
@@ -115,7 +120,6 @@ def debug_screenshot(pic):
     global i
     pic.save(f"{dir_path}/debug/Screen_{i}.png")
     i += 1
-
 
 def continue_fishing():
     while not stop_thread.is_set():
@@ -140,6 +144,7 @@ def fishing():
                 print("You can do other tasks as long as holocure window is visible.")
                 print("However, doing heavy tasks may affect the program's ability to fish.")
                 region = (hit_area.left+14, hit_area.top+24, hit_area.width-16, hit_area.height-30)
+                get_holocure_window()
 
         if hit_area and region:
             pic = pyautogui.screenshot(region=region)
