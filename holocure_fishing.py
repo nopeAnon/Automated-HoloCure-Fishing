@@ -21,31 +21,31 @@ def getconfig():
 
 # Config
 SPACE, _, LEFT, RIGHT, UP, DOWN = getconfig()
-up_color = (225, 50, 50)
-down_color = (52,144,245)
-left_color = (246, 198, 67)
-right_color = (45, 236, 43)
-space_color = (174, 49, 208)
+up_color = (224, 50, 50)
+down_color = (52, 144, 245)
+left_color = (244, 196, 66)
+right_color = (45, 234, 43)
+space_color = (173, 49, 207)
 color_tolerance = 3
 
-space_r_range = range(space_color[0]-color_tolerance, space_color[0]+color_tolerance)
+space_r_range = range(space_color[0]-color_tolerance, space_color[0]+color_tolerance+1)
 space_g_range = range(space_color[1]-color_tolerance, space_color[1]+color_tolerance)
-space_b_range = range(space_color[2]-color_tolerance, space_color[2]+color_tolerance)
+space_b_range = range(space_color[2]-color_tolerance, space_color[2]+color_tolerance+1)
 
-up_r_range = range(up_color[0]-color_tolerance, up_color[0]+color_tolerance)
+up_r_range = range(up_color[0]-color_tolerance, up_color[0]+color_tolerance+1)
 up_g_range = range(up_color[1]-color_tolerance, up_color[1]+color_tolerance)
 up_b_range = range(up_color[2]-color_tolerance, up_color[2]+color_tolerance)
 
 down_r_range = range(down_color[0]-color_tolerance, down_color[0]+color_tolerance)
 down_g_range = range(down_color[1]-color_tolerance, down_color[1]+color_tolerance)
-down_b_range = range(down_color[2]-color_tolerance, down_color[2]+color_tolerance)
+down_b_range = range(down_color[2]-color_tolerance, down_color[2]+color_tolerance+1)
 
-left_r_range = range(left_color[0]-color_tolerance, left_color[0]+color_tolerance)
-left_g_range = range(left_color[1]-color_tolerance, left_color[1]+color_tolerance)
-left_b_range = range(left_color[2]-color_tolerance, left_color[2]+color_tolerance)
+left_r_range = range(left_color[0]-color_tolerance, left_color[0]+color_tolerance+1)
+left_g_range = range(left_color[1]-color_tolerance, left_color[1]+color_tolerance+1)
+left_b_range = range(left_color[2]-color_tolerance, left_color[2]+color_tolerance+1)
 
 right_r_range = range(right_color[0]-color_tolerance, right_color[0]+color_tolerance)
-right_g_range = range(right_color[1]-color_tolerance, right_color[1]+color_tolerance)
+right_g_range = range(right_color[1]-color_tolerance, right_color[1]+color_tolerance+1)
 right_b_range = range(right_color[2]-color_tolerance, right_color[2]+color_tolerance)
 
 
