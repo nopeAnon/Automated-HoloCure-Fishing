@@ -7,9 +7,6 @@ import threading
 from pathlib import Path
 import os
 
-from PIL import ImageGrab
-from functools import partial
-ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -121,6 +118,16 @@ def debug_screenshot(pic):
     pic.save(f"{dir_path}/debug/Screen_{i}.png")
     i += 1
 
+def ask_multi_monitor_support():
+    multi_monitor = input("Do you want to enable multiple monitor support?(May decrease performance)[y/N]: ")
+    if multi_monitor.lower() == 'y': 
+        from PIL import ImageGrab
+        from functools import partial
+        ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
+        print("Multiple monitor support enabled!")
+        return
+    print("Multiple monitor support disabled!")
+
 def continue_fishing():
     while not stop_thread.is_set():
         if pyautogui.locateOnScreen(f"{dir_path}/img/ok.png", confidence=0.6):
@@ -130,6 +137,7 @@ def continue_fishing():
 
 def fishing():
     print("Welcome to Automated HoloCure Fishing!")
+    ask_multi_monitor_support()
     print("Please open holocure, go to holo house, and start fishing!")
     hit_area = None
     region = None
