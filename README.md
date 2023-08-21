@@ -40,3 +40,10 @@ This will eliminate possible disturbances to the hit area.
 ### Recommended settings when fishing
 
 ![Settings](https://github.com/nopeAnon/Automated-HoloCure-Fishing/assets/91358729/6e5bbc3c-2d98-4f1c-9ed1-93833103fee0)
+
+
+### How to remove the "Do you want to enable multiple monitor support?(May decrease performance)[y/N]: "
+comment this [line](https://github.com/nopeAnon/Automated-HoloCure-Fishing/blob/148d5ce8efee43f7a48ae869016cf555f8fed52c/holocure_fishing.py#L140)
+
+so it should look like this
+`# ask_multi_monitor_support()`
