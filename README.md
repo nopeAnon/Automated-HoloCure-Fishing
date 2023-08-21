@@ -21,7 +21,7 @@ If you have python installed, run:
 
 Or
 
-* python
+* python 3.11 or later
 * pyautogui (`pip install pyautogui`)
 * pywin32 (`pip install pypiwin32`)
 * opencv-python (`pip install opencv-python`)
