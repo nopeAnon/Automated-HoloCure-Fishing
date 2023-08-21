@@ -7,6 +7,10 @@ import threading
 from pathlib import Path
 import os
 
+from PIL import ImageGrab
+from functools import partial
+ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
