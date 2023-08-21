@@ -8,10 +8,13 @@ To make this work, play HoloCure in **windowed mode at 1280x720** and **don't mo
 [Video Tutorial](https://drive.google.com/file/d/14Xha8OWFiv26zBD4cYjMsHLD896q8RH4/view?usp=sharing) for absolute beginners.
 
 1. Clone this project
-1. Open holocure_fishing.py
-1. Open HoloCure and go to Holo House
-1. Start fishing
-1. Enjoy
+2. Execute prepare.bat or copy content to your console (this will setup a python "test_env" environment so you do not contaminate your system wide python installation)
+3. Execute launch_python.bat to open a console using the environment or copy the content to your console or skip this step and
+4. Open HoloCure
+5. Set your Resolution to 720p or 1080p or the scanning will not work or follow the hints at the end of the readme
+6. Start fishing by opening holocure_fishing.py or in your console "python holocure_fishing.py" or by any other means you want
+7. Go to Holo House and start fishing
+8. Enjoy
 
 
 
@@ -21,15 +24,10 @@ If you have python installed, run:
 
 Or
 
-* python 3.11 or later
+* python 3.10.8 or later
 * pyautogui (`pip install pyautogui`)
 * pywin32 (`pip install pypiwin32`)
 * opencv-python (`pip install opencv-python`)
-
-# Tips
-The best area to fish is on the upper left side of the pond.
-This will eliminate possible disturbances to the hit area.
-![BestArea](https://github.com/nopeAnon/Automated-HoloCure-Fishing/assets/91358729/1d67594f-ae08-4777-acec-69cfd618ae51)
 
 <hr>
 

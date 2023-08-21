@@ -13,15 +13,49 @@ def getconfig():
     with open(f"{Path.home()}/AppData/Local/HoloCure/settings.json") as config_file:
         config = json.load(config_file)
         keybinds = config.get("theButtons")
+        resolution = config.get("Resolution")
         if keybinds:
             print("found keybinds")
-            return keybinds
-        return ['z', 'x', 'a', 'd', 'w', 's']
+            return keybinds, resolution
+        return ['z', 'x', 'a', 'd', 'w', 's', 0.0]
 
 
 # Config
-SPACE, _, LEFT, RIGHT, UP, DOWN = getconfig()
+keybinds, resolution = getconfig()
+SPACE, _, LEFT, RIGHT, UP, DOWN = keybinds
 needles = {"up": UP, "down": DOWN, "left": LEFT, "right": RIGHT, "space": SPACE}
+res = "INVALID RESOLUTION"
+pre_left_offset = 0
+pre_top_offset = 0
+pre_width = 100
+pre_height = 100
+hitbox_left_offset = 0
+hitbox_top_offset = 0
+hitbox_width = 100
+hitbox_height = 100
+
+if resolution == 1.0:
+    pre_left_offset = -120
+    pre_top_offset = 23
+    pre_width = 133
+    pre_height = 52
+    hitbox_left_offset = -17
+    hitbox_top_offset = -3 
+    hitbox_width = 83
+    hitbox_height = 87
+    res = "720p"
+elif resolution == 2.0:
+    pre_left_offset = -180
+    pre_top_offset = 34
+    pre_width = 200
+    pre_height = 78
+    hitbox_left_offset = -25
+    hitbox_top_offset = -5
+    hitbox_width = 125
+    hitbox_height = 130
+    res = "1080p"
+
+print(f"{res} mode set")
 
 button = {
     '0':0x30,
@@ -84,6 +118,7 @@ if os.path.exists(f"{dir_path}/debug"):
 i = 0
 # for debuggin if enabled
 def debug_screenshot(pic, title="screen"):
+    global i
     if not debug:
         return
     os.makedirs(f"{dir_path}/debug", exist_ok=True)
@@ -109,7 +144,7 @@ def fishing():
         # check for a hit_area inidcating a running minigame
         if not hit_area:
             # scan for "ok" box in case fishing has to continue
-            if pyautogui.locateOnScreen(f"{dir_path}/img/ok.png", confidence=0.6):
+            if pyautogui.locateOnScreen(f"{dir_path}/img/{res}/ok.png", confidence=0.6):
                 print("continue fishing...")
                 press('enter')
                 time.sleep(0.05)
@@ -117,12 +152,12 @@ def fishing():
                 time.sleep(0.5)
             else:
                 # scan for hit region once on full screen and later only near the old region to save scan time between button presses
-                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/box.png", region=region, confidence=0.6)
+                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, confidence=0.6)
             if hit_area:
                 print("found hit area!")
                 print(hit_area)
-                pre_region = (hit_area.left-180, hit_area.top+27+12-5, 200, 63+15)
-                region = (hit_area.left-25, hit_area.top-5, 125, 130)
+                pre_region = (hit_area.left+pre_left_offset, hit_area.top+pre_top_offset, pre_width, pre_height)
+                region = (hit_area.left+hitbox_left_offset, hit_area.top+hitbox_top_offset, hitbox_width, hitbox_height)
                 if debug:
                     print(f"pre_region: {pre_region}")
                     print(f"region: {region}")
@@ -138,7 +173,7 @@ def fishing():
                 pic = pyautogui.screenshot(region=pre_region)
                 # try to find a needle in advance
                 for needle in needles.items():
-                    if pyautogui.locate(f"{dir_path}/img/{needle[0]}.png", pic, grayscale=False, confidence=0.8) is not None:
+                    if pyautogui.locate(f"{dir_path}/img/{res}/{needle[0]}.png", pic, confidence=0.8) is not None:
                         print(f"prepare {needle[0]}")
                         debug_screenshot(pic,title=f"prepare_{needle[0]}")
                         prepared = needle
@@ -149,7 +184,7 @@ def fishing():
             else:
                 # take a picture of the hit area and wait for the prepared needle to arrive
                 pic = pyautogui.screenshot(region=region)
-                if pyautogui.locate(f"{dir_path}/img/{prepared[0]}.png", pic, grayscale=False, confidence=0.8) is not None:
+                if pyautogui.locate(f"{dir_path}/img/{res}/{prepared[0]}.png", pic, confidence=0.8) is not None:
                     # needle arrived
                     print(f"pressing {prepared[0]}")
                     debug_screenshot(pic,title=f"hit_{prepared[0]}")
@@ -163,7 +198,7 @@ def fishing():
             if press_button:
                 press(press_button)
                 # check if hit area is still present to continue minigame
-                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/box.png", region=region, confidence=0.6)
+                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, confidence=0.6)
 
 try:
     fishing()
