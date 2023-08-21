@@ -105,12 +105,12 @@ def press(button_key: str):
     time.sleep(0.05)
 
 # for debuging
-# i = 0
-# def debug_screenshot(pic):
-#     os.makedirs(f"{dir_path}/debug", exist_ok=True)
-#     global i
-#     pic.save(f"{dir_path}/debug/Screen_{i}.png")
-#     i += 1
+i = 0
+def debug_screenshot(pic):
+    os.makedirs(f"{dir_path}/debug", exist_ok=True)
+    global i
+    pic.save(f"{dir_path}/debug/Screen_{i}.png")
+    i += 1
 
 
 def continue_fishing():
