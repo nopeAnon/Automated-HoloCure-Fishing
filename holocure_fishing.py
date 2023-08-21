@@ -104,6 +104,14 @@ def press(button_key: str):
     win.SendMessage(win32con.WM_KEYUP, button[button_key], 0)
     time.sleep(0.05)
 
+# for debuging
+# i = 0
+# def debug_screenshot(pic):
+#     os.makedirs(f"{dir_path}/debug", exist_ok=True)
+#     global i
+#     pic.save(f"{dir_path}/debug/Screen_{i}.png")
+#     i += 1
+
 
 def continue_fishing():
     while not stop_thread.is_set():
@@ -117,7 +125,7 @@ def fishing():
     print("Please open holocure, go to holo house, and start fishing!")
     hit_area = None
     region = None
-    # i = 0
+
     while True:
         if not hit_area:
             hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/box.png", confidence=0.6)
@@ -167,8 +175,8 @@ def fishing():
 
                     if press_button:
                         press(press_button)
-                        # pyautogui.screenshot(f"Screen_{i}.png", region=region)
-                        # i += 1
+                        # for debugging
+                        # debug_screenshot(pic)
                         break
 
                 
