@@ -5,7 +5,7 @@ This project aims to automate the fishing in HoloCure
 To make this work, play HoloCure in **windowed mode at 1280x720** and **don't move/minimize** the window once you have started fishing
 
 # To use the program, 
-[Video Tutorial](https://drive.google.com/file/d/14Xha8OWFiv26zBD4cYjMsHLD896q8RH4/view?usp=sharing) for absolute beginners.
+~~[Video Tutorial](https://drive.google.com/file/d/14Xha8OWFiv26zBD4cYjMsHLD896q8RH4/view?usp=sharing) for absolute beginners.~~ (*working on making a new one*)
 
 1. Clone this project
 2. Execute prepare.bat or copy content to your console (this will setup a python "test_env" environment so you do not contaminate your system wide python installation)
@@ -39,9 +39,3 @@ Or
 
 ![Settings](https://github.com/nopeAnon/Automated-HoloCure-Fishing/assets/91358729/6e5bbc3c-2d98-4f1c-9ed1-93833103fee0)
 
-
-### How to remove the "Do you want to enable multiple monitor support?(May decrease performance)[y/N]: "
-comment this [line](https://github.com/nopeAnon/Automated-HoloCure-Fishing/blob/148d5ce8efee43f7a48ae869016cf555f8fed52c/holocure_fishing.py#L140)
-
-so it should look like this
-`# ask_multi_monitor_support()`
