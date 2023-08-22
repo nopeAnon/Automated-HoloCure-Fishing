@@ -193,11 +193,13 @@ def fishing():
                             print(f"prepare {needle[0]}")
                             debug_screenshot(pic,title=f"prepare_{needle[0]}")
                             prepared = needle
+                            retry = max_retry
                             break
                     if not prepared:
                         # we did not find any needles
                         debug_screenshot(pic,title=f"scanning_{needle[0]}")
             else:
+                retry -= 1
                 if retry < 1:
                     # we did not find any needle within max_retry
                     retry = max_retry
