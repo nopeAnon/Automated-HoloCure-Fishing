@@ -149,7 +149,7 @@ def fishing():
         # check for a hit_area inidcating a running minigame
         if not hit_area:
             # scan for "ok" box in case fishing has to continue
-            if pyautogui.locateOnScreen(f"{dir_path}/img/{res}/ok.png", confidence=0.6):
+            if pyautogui.locateOnScreen(f"{dir_path}/img/{res}/ok.png", grayscale=True, confidence=0.6):
                 print("continue fishing...")
                 press('enter')
                 time.sleep(0.05)
@@ -157,7 +157,7 @@ def fishing():
                 time.sleep(0.5)
             else:
                 # scan for hit region once on full screen and later only near the old region to save scan time between button presses
-                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, confidence=0.6)
+                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", grayscale=True, region=region, confidence=0.6)
             if hit_area:
                 print("found hit area!")
                 print(hit_area)
@@ -178,7 +178,7 @@ def fishing():
                 pic = pyautogui.screenshot(region=pre_region)
                 # try to find a needle in advance
                 for needle in needles.items():
-                    if pyautogui.locate(f"{dir_path}/img/{res}/{needle[0]}.png", pic, confidence=0.8) is not None:
+                    if pyautogui.locate(f"{dir_path}/img/{res}/{needle[0]}.png", pic, grayscale=True, confidence=0.8) is not None:
                         print(f"prepare {needle[0]}")
                         debug_screenshot(pic,title=f"prepare_{needle[0]}")
                         prepared = needle
@@ -189,7 +189,7 @@ def fishing():
             else:
                 # take a picture of the hit area and wait for the prepared needle to arrive
                 pic = pyautogui.screenshot(region=region)
-                if pyautogui.locate(f"{dir_path}/img/{res}/{prepared[0]}.png", pic, confidence=0.8) is not None:
+                if pyautogui.locate(f"{dir_path}/img/{res}/{prepared[0]}.png", pic, grayscale=True, confidence=0.8) is not None:
                     # needle arrived
                     print(f"pressing {prepared[0]}")
                     debug_screenshot(pic,title=f"hit_{prepared[0]}")
@@ -203,7 +203,7 @@ def fishing():
             if press_button:
                 press(press_button)
                 # check if hit area is still present to continue minigame
-                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, confidence=0.6)
+                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", grayscale=True, region=region, confidence=0.6)
 
 try:
     fishing()
