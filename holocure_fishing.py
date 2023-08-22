@@ -91,6 +91,10 @@ button = {
     'z':0x5A,
     'space':0x20,
     'enter':0x0D,
+    'left':win32con.VK_LEFT,
+    'right':win32con.VK_RIGHT,
+    'up':win32con.VK_UP,
+    'down':win32con.VK_DOWN,
 }
 
 stop_thread = threading.Event()
