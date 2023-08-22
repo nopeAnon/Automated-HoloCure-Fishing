@@ -96,8 +96,13 @@ button = {
     'z':0x5A,
     'space':0x20,
     'enter':0x0D,
+    'left':0x25,
+    'up':0x26,
+    'right':0x27,
+    'down':0x28,
     'shift':0x10,
     'ctrl':0x11
+
 }
 
 hwndMain = win32gui.FindWindow(None, "HoloCure")
