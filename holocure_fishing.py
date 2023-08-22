@@ -2,55 +2,60 @@ import pyautogui
 import time
 import json
 import win32con, win32gui, win32ui
-from threading import Thread
-import threading
 from pathlib import Path
 import os
-
+import traceback
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
+debug = False
 
 def getconfig():
     with open(f"{Path.home()}/AppData/Local/HoloCure/settings.json") as config_file:
         config = json.load(config_file)
         keybinds = config.get("theButtons")
+        resolution = config.get("Resolution")
         if keybinds:
-            return keybinds
-        return ['z', 'x', 'a', 'd', 'w', 's']
+            print("found keybinds")
+            return keybinds, resolution
+        return ['z', 'x', 'a', 'd', 'w', 's', 0.0]
 
 
 # Config
-SPACE, _, LEFT, RIGHT, UP, DOWN = getconfig()
-up_color = (224, 50, 50)
-down_color = (52, 144, 245)
-left_color = (244, 196, 66)
-right_color = (45, 234, 43)
-space_color = (173, 49, 207)
-color_tolerance = 3
+keybinds, resolution = getconfig()
+SPACE, _, LEFT, RIGHT, UP, DOWN = keybinds
+needles = {"up": UP, "down": DOWN, "left": LEFT, "right": RIGHT, "space": SPACE}
+res = "INVALID RESOLUTION"
+pre_left_offset = 0
+pre_top_offset = 0
+pre_width = 100
+pre_height = 100
+hitbox_left_offset = 0
+hitbox_top_offset = 0
+hitbox_width = 100
+hitbox_height = 100
 
-space_r_range = range(space_color[0]-color_tolerance, space_color[0]+color_tolerance+1)
-space_g_range = range(space_color[1]-color_tolerance, space_color[1]+color_tolerance)
-space_b_range = range(space_color[2]-color_tolerance, space_color[2]+color_tolerance+1)
+if resolution == 1.0:
+    pre_left_offset = -120
+    pre_top_offset = 23
+    pre_width = 133
+    pre_height = 52
+    hitbox_left_offset = -17
+    hitbox_top_offset = -3 
+    hitbox_width = 83
+    hitbox_height = 87
+    res = "720p"
+elif resolution == 2.0:
+    pre_left_offset = -180
+    pre_top_offset = 34
+    pre_width = 200
+    pre_height = 78
+    hitbox_left_offset = -25
+    hitbox_top_offset = -5
+    hitbox_width = 125
+    hitbox_height = 130
+    res = "1080p"
 
-up_r_range = range(up_color[0]-color_tolerance, up_color[0]+color_tolerance+1)
-up_g_range = range(up_color[1]-color_tolerance, up_color[1]+color_tolerance)
-up_b_range = range(up_color[2]-color_tolerance, up_color[2]+color_tolerance)
-
-down_r_range = range(down_color[0]-color_tolerance, down_color[0]+color_tolerance)
-down_g_range = range(down_color[1]-color_tolerance, down_color[1]+color_tolerance)
-down_b_range = range(down_color[2]-color_tolerance, down_color[2]+color_tolerance+1)
-
-left_r_range = range(left_color[0]-color_tolerance, left_color[0]+color_tolerance+1)
-left_g_range = range(left_color[1]-color_tolerance, left_color[1]+color_tolerance+1)
-left_b_range = range(left_color[2]-color_tolerance, left_color[2]+color_tolerance+1)
-
-right_r_range = range(right_color[0]-color_tolerance, right_color[0]+color_tolerance)
-right_g_range = range(right_color[1]-color_tolerance, right_color[1]+color_tolerance+1)
-right_b_range = range(right_color[2]-color_tolerance, right_color[2]+color_tolerance)
-
-
-
+print(f"{res} mode set")
 
 button = {
     '0':0x30,
@@ -91,122 +96,120 @@ button = {
     'z':0x5A,
     'space':0x20,
     'enter':0x0D,
-    'left':win32con.VK_LEFT,
-    'right':win32con.VK_RIGHT,
-    'up':win32con.VK_UP,
-    'down':win32con.VK_DOWN,
+    'left':0x25,
+    'up':0x26,
+    'right':0x27,
+    'down':0x28,
+    'shift':0x10,
+    'ctrl':0x11
+
 }
 
-stop_thread = threading.Event()
-
-win = None
-def get_holocure_window():
-    hwndMain = win32gui.FindWindow(None, "HoloCure")
-    global win
-    win = win32ui.CreateWindowFromHandle(hwndMain)
+hwndMain = win32gui.FindWindow(None, "HoloCure")
+win = win32ui.CreateWindowFromHandle(hwndMain)
 
 def press(button_key: str):
-    if not win: return
     button_key = button_key.lower()
-    print("pressing ", button_key)
     win.SendMessage(win32con.WM_KEYDOWN, button[button_key], 0)
     time.sleep(0.05)
     win.SendMessage(win32con.WM_KEYUP, button[button_key], 0)
     time.sleep(0.05)
 
-# for debuging
+# clear debug folder if present
+if os.path.exists(f"{dir_path}/debug"):
+    for f in os.listdir(f"{dir_path}/debug"):
+        os.remove(f"{dir_path}/debug/{f}")
+        
 i = 0
-def debug_screenshot(pic):
-    os.makedirs(f"{dir_path}/debug", exist_ok=True)
+# for debuggin if enabled
+def debug_screenshot(pic, title="screen"):
     global i
-    pic.save(f"{dir_path}/debug/Screen_{i}.png")
-    i += 1
-
-def ask_multi_monitor_support():
-    multi_monitor = input("Do you want to enable multiple monitor support?(May decrease performance)[y/N]: ")
-    if multi_monitor.lower() == 'y': 
-        from PIL import ImageGrab
-        from functools import partial
-        ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
-        print("Multiple monitor support enabled!")
+    if not debug:
         return
-    print("Multiple monitor support disabled!")
-
-def continue_fishing():
-    while not stop_thread.is_set():
-        if pyautogui.locateOnScreen(f"{dir_path}/img/ok.png", confidence=0.6):
-            press('enter')
-            press('enter')
-        time.sleep(0.5)
+    os.makedirs(f"{dir_path}/debug", exist_ok=True)
+    pic.save(f"{dir_path}/debug/{i}_{title}.png")
+    i += 1
 
 def fishing():
     print("Welcome to Automated HoloCure Fishing!")
-    ask_multi_monitor_support()
     print("Please open holocure, go to holo house, and start fishing!")
+    print("Please don't move/close/minimize the holocure window.")
+    print("You can do other tasks as long as holocure window is visible.")
+    print("However, doing heavy tasks may affect the program's ability to fish.")
+    
     hit_area = None
+    
+    pre_region = None
+    
     region = None
-
+    
+    prepared = None
+    
     while True:
+        # check for a hit_area inidcating a running minigame
         if not hit_area:
-            hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/box.png", confidence=0.6)
+            # scan for "ok" box in case fishing has to continue
+            if pyautogui.locateOnScreen(f"{dir_path}/img/{res}/ok.png", confidence=0.6):
+                print("continue fishing...")
+                press('enter')
+                time.sleep(0.05)
+                press('enter')
+                time.sleep(0.5)
+            else:
+                # scan for hit region once on full screen and later only near the old region to save scan time between button presses
+                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, confidence=0.6)
             if hit_area:
-                print("Found Area!")
+                print("found hit area!")
                 print(hit_area)
-                print("Please don't move/close/minimize the holocure window.")
-                print("You can do other tasks as long as holocure window is visible.")
-                print("However, doing heavy tasks may affect the program's ability to fish.")
-                region = (hit_area.left+14, hit_area.top+24, hit_area.width-16, hit_area.height-30)
-                get_holocure_window()
-
-        if hit_area and region:
-            pic = pyautogui.screenshot(region=region)
-            # UP = 225, 50, 50
-            # DOWN = 52,144,245
-            # LEFT = 246, 198, 67
-            # RIGHT = 45, 236, 43
-            # SPACE = 174, 49, 208
-
-            w, h = pic.size
-
+                pre_region = (hit_area.left+pre_left_offset, hit_area.top+pre_top_offset, pre_width, pre_height)
+                region = (hit_area.left+hitbox_left_offset, hit_area.top+hitbox_top_offset, hitbox_width, hitbox_height)
+                if debug:
+                    print(f"pre_region: {pre_region}")
+                    print(f"region: {region}")
+                debug_screenshot(pyautogui.screenshot(region=pre_region), title="scanbox")
+                debug_screenshot(pyautogui.screenshot(region=region), title="hitbox")
+        else:
+            # we found a running hit area
+            # reset press button
             press_button = ""
-            for x in range(0, w, 2):
-                if press_button: break
-                for y in range(0, h):
-                    r,g,b = pic.getpixel((x,y))
-
-                    # SPACE
-                    if r in space_r_range and g in space_g_range and b in space_b_range:
-                        press_button = SPACE
-
-                    # left
-                    elif r in left_r_range and g in left_g_range and b in left_b_range:
-                        press_button = LEFT
-
-                    # right
-                    elif r in right_r_range and g in right_g_range and b in right_b_range:
-                        press_button = RIGHT
-                    
-                    # down
-                    elif r in down_r_range and g in down_g_range and b in down_b_range:
-                        press_button = DOWN
-
-                    # up
-                    elif r in up_r_range and g in up_g_range and b in up_b_range:
-                        press_button = UP
-
-                    if press_button:
-                        press(press_button)
-                        # for debugging
-                        # debug_screenshot(pic)
+            
+            if not prepared:
+                # take a picture of the area before the hit area
+                pic = pyautogui.screenshot(region=pre_region)
+                # try to find a needle in advance
+                for needle in needles.items():
+                    if pyautogui.locate(f"{dir_path}/img/{res}/{needle[0]}.png", pic, confidence=0.8) is not None:
+                        print(f"prepare {needle[0]}")
+                        debug_screenshot(pic,title=f"prepare_{needle[0]}")
+                        prepared = needle
                         break
-
-                
-
-t1 = Thread(target=continue_fishing)
+                if not prepared:
+                    # we did not find any needles
+                    debug_screenshot(pic,title=f"scanning_{needle[0]}")
+            else:
+                # take a picture of the hit area and wait for the prepared needle to arrive
+                pic = pyautogui.screenshot(region=region)
+                if pyautogui.locate(f"{dir_path}/img/{res}/{prepared[0]}.png", pic, confidence=0.8) is not None:
+                    # needle arrived
+                    print(f"pressing {prepared[0]}")
+                    debug_screenshot(pic,title=f"hit_{prepared[0]}")
+                    press_button = prepared[1]
+                    # reset prepared needle
+                    prepared = None
+                else:
+                    # needle not yet arrived
+                    debug_screenshot(pic,title=f"waiting_{prepared[0]}")
+            
+            if press_button:
+                press(press_button)
+                # check if hit area is still present to continue minigame
+                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, confidence=0.6)
 
 try:
-    t1.start()
     fishing()
 except(KeyboardInterrupt, SystemExit):
-    stop_thread.set()
-    t1.join()
+    pass
+except Exception as e:
+        traceback.print_exc()
+
+    
