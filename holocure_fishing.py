@@ -130,6 +130,8 @@ def debug_screenshot(pic, title="screen"):
     pic.save(f"{dir_path}/debug/{i}_{title}.png")
     i += 1
 
+max_retry = 50
+
 def fishing():
     print("Welcome to Automated HoloCure Fishing!")
     print("Please open holocure, go to holo house, and start fishing!")
@@ -145,9 +147,12 @@ def fishing():
     
     prepared = None
     
+    retry = max_retry
+    
     while True:
         # check for a hit_area inidcating a running minigame
         if not hit_area:
+            prepared = None
             # scan for "ok" box in case fishing has to continue
             if pyautogui.locateOnScreen(f"{dir_path}/img/{res}/ok.png", grayscale=True, confidence=0.6):
                 print("continue fishing...")
@@ -170,40 +175,50 @@ def fishing():
                 debug_screenshot(pyautogui.screenshot(region=region), title="hitbox")
         else:
             # we found a running hit area
-            # reset press button
-            press_button = ""
             
             if not prepared:
-                # take a picture of the area before the hit area
-                pic = pyautogui.screenshot(region=pre_region)
-                # try to find a needle in advance
-                for needle in needles.items():
-                    if pyautogui.locate(f"{dir_path}/img/{res}/{needle[0]}.png", pic, grayscale=True, confidence=0.8) is not None:
-                        print(f"prepare {needle[0]}")
-                        debug_screenshot(pic,title=f"prepare_{needle[0]}")
-                        prepared = needle
-                        break
-                if not prepared:
-                    # we did not find any needles
-                    debug_screenshot(pic,title=f"scanning_{needle[0]}")
+                retry -= 1
+                if retry < 1:
+                    # we did not find any needle within max_retry
+                    retry = max_retry
+                    # check if hit area is still present to continue minigame
+                    hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", grayscale=True, region=region, confidence=0.6)
+                    # when hit_area turns None, we assume we missed the end of the minigame and return to search for the OK
+                else:
+                    # take a picture of the area before the hit area
+                    pic = pyautogui.screenshot(region=pre_region)
+                    # try to find a needle in advance
+                    for needle in needles.items():
+                        if pyautogui.locate(f"{dir_path}/img/{res}/{needle[0]}.png", pic, grayscale=True, confidence=0.8) is not None:
+                            print(f"prepare {needle[0]}")
+                            debug_screenshot(pic,title=f"prepare_{needle[0]}")
+                            prepared = needle
+                            break
+                    if not prepared:
+                        # we did not find any needles
+                        debug_screenshot(pic,title=f"scanning_{needle[0]}")
             else:
+                if retry < 1:
+                    # we did not find any needle within max_retry
+                    retry = max_retry
+                    # check if hit area is still present to continue minigame
+                    hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", grayscale=True, region=region, confidence=0.6)
+                    # when hit_area turns None, we assume we missed the end of the minigame and return to search for the OK
                 # take a picture of the hit area and wait for the prepared needle to arrive
                 pic = pyautogui.screenshot(region=region)
                 if pyautogui.locate(f"{dir_path}/img/{res}/{prepared[0]}.png", pic, grayscale=True, confidence=0.8) is not None:
                     # needle arrived
                     print(f"pressing {prepared[0]}")
                     debug_screenshot(pic,title=f"hit_{prepared[0]}")
-                    press_button = prepared[1]
+                    press(prepared[1])
                     # reset prepared needle
                     prepared = None
+                    # check if hit area is still present to continue minigame
+                    hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", region=region, grayscale=True, confidence=0.6)
                 else:
                     # needle not yet arrived
                     debug_screenshot(pic,title=f"waiting_{prepared[0]}")
-            
-            if press_button:
-                press(press_button)
-                # check if hit area is still present to continue minigame
-                hit_area = pyautogui.locateOnScreen(f"{dir_path}/img/{res}/box.png", grayscale=True, region=region, confidence=0.6)
+
 
 try:
     fishing()
