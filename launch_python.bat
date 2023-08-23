@@ -1,2 +1,1 @@
-start .venv\Scripts\activate.bat
-call holocure_fishing.py
+.venv\Scripts\python.exe holocure_fishing.py
