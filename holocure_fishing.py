@@ -1,10 +1,8 @@
 import ctypes
 import json
-import os
 from pathlib import Path
 from sys import platform
 import time
-import traceback
 
 import cv2
 import numpy as np
@@ -20,12 +18,13 @@ def main() -> None:
     print("Please open holocure, go to Holo House, and start fishing!")
     print("You can do other tasks as long as HoloCure window isn't minimised.")
     print("it works even if it's in the background!")
-    # disable program DPI scaling so OpenCV debug shows at correct size
+    # disable program DPI scaling - affects screen capture
     if platform == "win32":
         errorCode = ctypes.windll.shcore.SetProcessDpiAwareness(2)
     # first time config load, but we check every second to see if it's changed
     keybinds = get_config()
     one_second_timer = time.time()
+    BASE_ROI = (276, 242, 133, 38)  # left, top, right, bottom
     # Big loopy boi:
     while True:
         #   1. Use computer vision to get information about the game
@@ -42,24 +41,34 @@ def main() -> None:
         if hwndMain == 0:
             time.sleep(1)
             continue
-        img_src = capture_game(hwndMain)
-        if img_src is None:  # skip if we can't find the window (e.g. its minimised)
+        left, top, right, bottom = win32gui.GetClientRect(hwndMain)
+        width, height = right - left, bottom - top
+        if width == 0 or height == 0:  # skip if window minimised
             continue
+        scale = round(height / 360)
+        roi = np.multiply(scale, BASE_ROI)
+        img_src = capture_game(hwndMain, *roi)
         # used to send input - a bit wasteful to call every loop though...
         win = win32ui.CreateWindowFromHandle(hwndMain)
 
         # resize the window down to 640x360
         # so the rest of the code is resolution-invariant
-        img_src = cv2.resize(img_src, (640, 360), interpolation=cv2.INTER_NEAREST)
+        img_src = cv2.resize(
+            img_src,
+            dsize=None,
+            fx=1 / scale,
+            fy=1 / scale,
+            interpolation=cv2.INTER_NEAREST,
+        )
         cv2.namedWindow("Source", cv2.WINDOW_NORMAL)
         cv2.imshow("Source", img_src)
-        cv2.resizeWindow("Source", 1280, 720)
+        cv2.resizeWindow("Source", img_src.shape[1] * 2, img_src.shape[0] * 2)
 
         # maths time
         # look for rhythm game arrows first
         # spacebar first
         res = cv2.matchTemplate(
-            img_src[244 : 244 + 17, 379 + 2 : 409],
+            img_src[2 : 2 + 17, 103 + 2 : 133],
             templates["space"],
             cv2.TM_SQDIFF,
             mask=masks["space"],
@@ -72,7 +81,7 @@ def main() -> None:
         # left/right
         for key in ("left", "right"):
             res = cv2.matchTemplate(
-                img_src[243 : 243 + 19, 379:409],
+                img_src[1 : 1 + 19, 103:133],
                 templates[key],
                 cv2.TM_SQDIFF,
                 mask=masks[key],
@@ -86,7 +95,7 @@ def main() -> None:
         # up/down
         for key in ("up", "down"):
             res = cv2.matchTemplate(
-                img_src[242 : 242 + 21, 379 + 1 : 409],
+                img_src[0:21, 103 + 1 : 133],
                 templates[key],
                 cv2.TM_SQDIFF,
                 mask=masks[key],
@@ -99,7 +108,7 @@ def main() -> None:
 
         # look for "ok" button and press enter if so
         res = cv2.matchTemplate(
-            img_src[251 : 251 + 29, 276 : 276 + 89],
+            img_src[9 : 9 + 29, 0:89],
             templates["ok"],
             cv2.TM_SQDIFF,
             mask=masks["ok"],
@@ -107,9 +116,10 @@ def main() -> None:
         min_val, _, _, _ = cv2.minMaxLoc(res)
         # arbitrary magic number, handles the mouse being over the OK button
         if min_val < 60_000_000:
-            press(win, "enter")
-            time.sleep(0.05)
-            press(win, "enter")
+            # press(win, "enter")
+            # time.sleep(0.05)
+            # press(win, "enter")
+            pass
 
         # debug to see how fast the loop runs
         elapsed = time.time() - last_time
@@ -142,25 +152,19 @@ def get_config():
         }
 
 
-def capture_game(hwnd):
+def capture_game(hwnd, left: int, top: int, width: int, height: int):
     """Get a screenshot of the given window.
 
-    Works even if the is behind other windows but not minimised.
+    Works even if target hwnd is behind other windows, but not minimised.
 
     From https://stackoverflow.com/a/62293979
     and https://stackoverflow.com/q/40098142
     and https://stackoverflow.com/a/68310347"""
     # TODO: can probably refactor this as a class to avoid calling
     # constructors/destructors all the time
-    left, top, right, bottom = win32gui.GetClientRect(hwnd)
-    # left and top are usually 0, 0 but just to be safe :)
-    width, height = right - left, bottom - top
     # calculate offset (e.g. from title bar, window borders)
-    left, top, *_ = win32gui.GetWindowRect(hwnd)
-    offset_left, offset_top = win32gui.ScreenToClient(hwnd, (left, top))
-    # if the window is minimised, return a black rectangle
-    if width == 0 or height == 0:
-        return None
+    offset_left, offset_top, *_ = win32gui.GetWindowRect(hwnd)
+    offset_left, offset_top = win32gui.ScreenToClient(hwnd, (offset_left, offset_top))
     wDC = win32gui.GetWindowDC(hwnd)
     dcObj = win32ui.CreateDCFromHandle(wDC)
     cDC = dcObj.CreateCompatibleDC()
@@ -168,7 +172,11 @@ def capture_game(hwnd):
     dataBitMap.CreateCompatibleBitmap(dcObj, width, height)
     cDC.SelectObject(dataBitMap)
     cDC.BitBlt(
-        (0, 0), (width, height), dcObj, (-offset_left, -offset_top), win32con.SRCCOPY
+        (0, 0),
+        (width, height),
+        dcObj,
+        (left - offset_left, top - offset_top),
+        win32con.SRCCOPY,
     )
 
     im = dataBitMap.GetBitmapBits(True)
