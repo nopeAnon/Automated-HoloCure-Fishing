@@ -87,6 +87,7 @@ def main() -> None:
             # arbitrary magic number, gets stuck if mouse hovering over button
             if min_val < 1000:
                 press(win, keybinds[key])
+                time.sleep(0.2)
                 break
 
         # look for "ok" button and press enter if so
