@@ -10,6 +10,7 @@ import cv2 as cv
 import numpy as np
 import mss.tools
 
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 debug = False
 
@@ -58,6 +59,9 @@ elif resolution == 2.0:
     hitbox_width = 125
     hitbox_height = 130
     res = "1080p"
+
+images_name = list(needles.keys()) + ["ok", "box"]
+images = {name:Image.open(f"{dir_path}/img/{res}/{name}.png") for name in images_name}
 
 print(f"{res} mode set")
 
@@ -161,7 +165,7 @@ def locate(sct, needle, region=None, mon=1, confidence=0.8, method=cv.TM_CCOEFF_
     if (res >= confidence).any():
         return (max_loc[0]+add_left, max_loc[1]+add_top, max_loc[0]+add_left+w, max_loc[1]+add_top+h)
     return None
-
+  
 max_retry = 50
 
 def fishing():
@@ -251,7 +255,6 @@ def fishing():
             else:
                 retry = max_retry
                 hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
-
 
 
 try:
