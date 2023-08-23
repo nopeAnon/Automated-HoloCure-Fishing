@@ -1,1 +1,2 @@
-start test_env\Scripts\activate.bat
+start .venv\Scripts\activate.bat
+call holocure_fishing.py

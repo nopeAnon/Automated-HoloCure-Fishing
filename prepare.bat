@@ -1,4 +1,4 @@
-python -m venv test_env
-call test_env\Scripts\activate.bat
+python -m venv .venv
+call .venv\Scripts\activate.bat
 pip install -r requirements.txt
 PAUSE
