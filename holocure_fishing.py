@@ -113,11 +113,7 @@ button = {
 
 }
 
-hwndMain = win32gui.FindWindow(None, "HoloCure")
-if not hwndMain:
-    input("Holocure window not found! Please use this again AFTER holocure has been opened. Press Enter to exit...")
-    exit()
-win = win32ui.CreateWindowFromHandle(hwndMain)
+win = None
 
 def press(button_key: str):
     button_key = button_key.lower()
@@ -174,6 +170,7 @@ def fishing():
     print("Please don't move/close/minimize the holocure window.")
     print("You can do other tasks as long as holocure window is visible.")
     print("However, doing heavy tasks may affect the program's ability to fish.")
+    print("===============")
     hit_area = None
     
     pre_region = None
@@ -187,8 +184,20 @@ def fishing():
     # Specify which monitor has the holocure window. Monitor count starts at 1. So if you want monitor 2, mon=2
     monitor = 1
 
+    hwndMain = win32gui.FindWindow(None, "HoloCure")
+
+    global win
+
     with mss.mss() as sct:
         while True:
+            if not hwndMain:
+                print("\rHolocure window not found! Trying again in 5 seconds...", end="")
+                time.sleep(5)
+                hwndMain = win32gui.FindWindow(None, "HoloCure")
+            elif hwndMain and not win:
+                print("Holocure window found!")
+                win = win32ui.CreateWindowFromHandle(hwndMain)
+
             # check for a hit_area inidcating a running minigame
             if not hit_area:
                 prepared = None
