@@ -125,12 +125,16 @@ def main() -> None:
             press(win, "enter")
             pass
 
+        elapsed = time.time() - last_time
         # debug to see how fast the loop runs
         if DEBUG:
-            elapsed = time.time() - last_time
             fps = 1 / elapsed
             print(f"FPS: {round(fps, 2):06.2f}" + "-" * round(fps / 10))
             cv2.waitKey(1)
+
+        # slow the loop down to 100Hz max
+        if elapsed < 0.01:
+            time.sleep(0.01 - elapsed)
 
 
 def get_config():
