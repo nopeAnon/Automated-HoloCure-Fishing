@@ -11,13 +11,15 @@ import win32con, win32gui, win32ui
 from imgproc import templates, masks
 from send_input import press
 
+DEBUG = False
+
 
 def main() -> None:
     """Entry point for the program."""
     print("Welcome to Automated HoloCure Fishing!")
-    print("Please open holocure, go to Holo House, and start fishing!")
-    print("You can do other tasks as long as HoloCure window isn't minimised.")
-    print("it works even if it's in the background!")
+    print("Please open HoloCure, go to Holo House, and start fishing!")
+    print("You can do other tasks as long as the HoloCure window isn't minimised.")
+    print("It works even if the game is in the background!")
     # disable program DPI scaling - affects screen capture
     if platform == "win32":
         errorCode = ctypes.windll.shcore.SetProcessDpiAwareness(2)
@@ -41,6 +43,7 @@ def main() -> None:
         if hwndMain == 0:
             time.sleep(1)
             continue
+        # capture only the area we need for image processing
         left, top, right, bottom = win32gui.GetClientRect(hwndMain)
         width, height = right - left, bottom - top
         if width == 0 or height == 0:  # skip if window minimised
@@ -51,7 +54,7 @@ def main() -> None:
         # used to send input - a bit wasteful to call every loop though...
         win = win32ui.CreateWindowFromHandle(hwndMain)
 
-        # resize the window down to 640x360
+        # resize the window down
         # so the rest of the code is resolution-invariant
         img_src = cv2.resize(
             img_src,
@@ -60,9 +63,10 @@ def main() -> None:
             fy=1 / scale,
             interpolation=cv2.INTER_NEAREST,
         )
-        cv2.namedWindow("Source", cv2.WINDOW_NORMAL)
-        cv2.imshow("Source", img_src)
-        cv2.resizeWindow("Source", img_src.shape[1] * 2, img_src.shape[0] * 2)
+        if DEBUG:
+            cv2.namedWindow("Source", cv2.WINDOW_NORMAL)
+            cv2.imshow("Source", img_src)
+            cv2.resizeWindow("Source", img_src.shape[1] * 2, img_src.shape[0] * 2)
 
         # maths time
         # look for rhythm game arrows first
@@ -116,16 +120,17 @@ def main() -> None:
         min_val, _, _, _ = cv2.minMaxLoc(res)
         # arbitrary magic number, handles the mouse being over the OK button
         if min_val < 60_000_000:
-            # press(win, "enter")
-            # time.sleep(0.05)
-            # press(win, "enter")
+            press(win, "enter")
+            time.sleep(0.05)
+            press(win, "enter")
             pass
 
         # debug to see how fast the loop runs
-        elapsed = time.time() - last_time
-        fps = 1 / elapsed
-        print(f"FPS: {round(fps, 2):06.2f}" + "-" * round(fps / 10))
-        cv2.waitKey(1)
+        if DEBUG:
+            elapsed = time.time() - last_time
+            fps = 1 / elapsed
+            print(f"FPS: {round(fps, 2):06.2f}" + "-" * round(fps / 10))
+            cv2.waitKey(1)
 
 
 def get_config():

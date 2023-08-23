@@ -58,6 +58,7 @@ BUTTON = {
 
 def press(win, button_key: str):
     """Send button press to the target window."""
+    print("Pressing " + button_key)
     button_key = button_key.lower()
     win.SendMessage(win32con.WM_KEYDOWN, BUTTON[button_key], 0)
     time.sleep(0.015)

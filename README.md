@@ -2,7 +2,7 @@
 ![HighScore](https://github.com/nopeAnon/Automated-HoloCure-Fishing/assets/91358729/ceb6506a-19cd-493a-afcf-980f39125f8a)
 This project aims to automate the fishing in HoloCure.
 
-This works in any **windowed** resolution, and you can move the window around, resize it or have it in the background but it doesn't work when the game is minimised.
+This works in any **windowed** resolution, and you can move the window around, resize it or have it in the background, BUT it doesn't work when the game is minimised. Works with multi-monitor setups.
 
 # Getting Started
 ~~[Video Tutorial](https://drive.google.com/file/d/14Xha8OWFiv26zBD4cYjMsHLD896q8RH4/view?usp=sharing) for absolute beginners.~~ (*working on making a new one*)
