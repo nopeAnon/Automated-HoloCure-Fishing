@@ -4,7 +4,7 @@ import cv2
 
 raw = dict(
     ok=cv2.imread("./img/360p/ok.png", cv2.IMREAD_UNCHANGED),
-    box=cv2.imread("./img/360p/box.png", cv2.IMREAD_UNCHANGED),
+    # box=cv2.imread("./img/360p/box.png", cv2.IMREAD_UNCHANGED),  # unused
     space=cv2.imread("./img/360p/space.png", cv2.IMREAD_UNCHANGED),
     left=cv2.imread("./img/360p/left.png", cv2.IMREAD_UNCHANGED),
     right=cv2.imread("./img/360p/right.png", cv2.IMREAD_UNCHANGED),
