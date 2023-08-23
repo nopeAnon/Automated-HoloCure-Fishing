@@ -23,12 +23,15 @@ def main() -> None:
     print("It works even if the game is in the background!")
     # disable program DPI scaling - affects screen capture
     if platform == "win32":
-        errorCode = ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
     # first time config load, but we check every second to see if it's changed
     keybinds = get_config()
     one_second_timer = time.time()
+    counter = 0
+    last_time_pressed = time.time()
+    started = False
     # Region of Interest - we only need this area of the screen
-    BASE_ROI = (276, 242, 133, 38)  # left, top, right, bottom
+    base_roi = (276, 242, 133, 38)  # left, top, right, bottom
     # Big loopy boi:
     while True:
         #   1. Use computer vision to get information about the game
@@ -39,8 +42,8 @@ def main() -> None:
         if last_time - one_second_timer > 1:
             keybinds = get_config()
             one_second_timer = last_time
-        # find the window every loop - a bit ugly but we can handle the game
-        # closing and opening this way (theres probably a better way though)
+        # find the window every loop - a bit ugly, but we can handle the game
+        # closing and opening this way (there's probably a better way though)
         hwndMain = win32gui.FindWindow("YYGameMakerYY", "HoloCure")
         if hwndMain == 0:
             time.sleep(1)
@@ -51,7 +54,7 @@ def main() -> None:
         if width == 0 or height == 0:  # skip if window minimised
             continue
         scale = round(height / 360)
-        roi = np.multiply(scale, BASE_ROI)
+        roi = np.multiply(scale, base_roi)
         img_src = capture_game(hwndMain, *roi)
         # used to send input - a bit wasteful to call every loop though...
         win = win32ui.CreateWindowFromHandle(hwndMain)
@@ -78,7 +81,7 @@ def main() -> None:
             h_offset = 10 - floor(h / 2)
             w_offset = 10 - floor(w / 2)
             res = cv2.matchTemplate(
-                img_src[h_offset : h_offset + h, 103 + w_offset : 133],
+                img_src[h_offset: h_offset + h, 103 + w_offset: 133],
                 templates[key],
                 cv2.TM_SQDIFF,
                 mask=masks[key],
@@ -87,13 +90,14 @@ def main() -> None:
             # arbitrary magic number, gets stuck if mouse hovering over button
             if min_val < 1000:
                 press(win, keybinds[key])
+                last_time_pressed = time.time()
                 time.sleep(0.2)
                 break
 
         # look for "ok" button and press enter if so
         h, w, _ = templates["ok"].shape
         res = cv2.matchTemplate(
-            img_src[9 : 9 + h, 0:w],
+            img_src[9: 9 + h, 0:w],
             templates["ok"],
             cv2.TM_SQDIFF,
             mask=masks["ok"],
@@ -104,7 +108,11 @@ def main() -> None:
             press(win, "enter")
             time.sleep(0.05)
             press(win, "enter")
-            pass
+            counter += 1
+            print("Fishing count: ", counter)
+            if not started:
+                started = True
+
 
         elapsed = time.time() - last_time
         # debug to see how fast the loop runs
@@ -116,6 +124,14 @@ def main() -> None:
         # slow the loop down to 100Hz max
         if elapsed < 0.01:
             time.sleep(0.01 - elapsed)
+
+        if started:
+            # case of exiting fishing mode, for some stupid reason
+            if time.time() - last_time_pressed > 30:
+                press(win, "enter")
+                # in order not to mess up the log if such a case happens
+                last_time_pressed = time.time()
+                print("Entering back into fishing mode")
 
 
 def get_config():
