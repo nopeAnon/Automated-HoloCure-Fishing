@@ -6,6 +6,10 @@ from pathlib import Path
 import os
 import traceback
 from PIL import Image
+import cv2 as cv
+import numpy as np
+import mss.tools
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 debug = False
@@ -61,6 +65,10 @@ images = {name:Image.open(f"{dir_path}/img/{res}/{name}.png") for name in images
 
 print(f"{res} mode set")
 
+print("Preloading Images...")
+images_name = list(needles.keys()) + ["ok", "box"]
+images = {name:cv.imread(f"{dir_path}/img/{res}/{name}.png", cv.IMREAD_UNCHANGED) for name in images_name}
+
 button = {
     '0':0x30,
     '1':0x31,
@@ -109,8 +117,7 @@ button = {
 
 }
 
-hwndMain = win32gui.FindWindow(None, "HoloCure")
-win = win32ui.CreateWindowFromHandle(hwndMain)
+win = None
 
 def press(button_key: str):
     button_key = button_key.lower()
@@ -123,17 +130,42 @@ def press(button_key: str):
 if os.path.exists(f"{dir_path}/debug"):
     for f in os.listdir(f"{dir_path}/debug"):
         os.remove(f"{dir_path}/debug/{f}")
-        
+
+def _pil_frombytes(im):
+    return Image.frombytes('RGB', im.size, im.bgra, 'raw', 'BGRX').tobytes()
+
 i = 0
 # for debuggin if enabled
-def debug_screenshot(pic, title="screen"):
+def debug_screenshot(img, debug_title=f"{i}_screen.png"):
     global i
     if not debug:
         return
     os.makedirs(f"{dir_path}/debug", exist_ok=True)
-    pic.save(f"{dir_path}/debug/{i}_{title}.png")
+    mss.tools.to_png(_pil_frombytes(img), img.size, output=f"{dir_path}/debug/{i}_{debug_title}.png")
     i += 1
 
+def locate(sct, needle, region=None, mon=1, confidence=0.8, method=cv.TM_CCOEFF_NORMED, debug_title="screen"):
+    add_left = 0
+    add_top = 0
+    
+    if not region:
+        region = sct.monitors[mon]
+    else:
+        add_left = region[0]
+        add_top = region[1]
+
+    img = sct.grab(region)
+    res = cv.matchTemplate(np.array(img), needle, method)
+    if debug:
+        global i
+        debug_screenshot(img, debug_title=debug_title)
+        i += 1
+    _,_,_, max_loc = cv.minMaxLoc(res)
+    h, w, _ = needle.shape
+    if (res >= confidence).any():
+        return (max_loc[0]+add_left, max_loc[1]+add_top, max_loc[0]+add_left+w, max_loc[1]+add_top+h)
+    return None
+  
 max_retry = 50
 
 def fishing():
@@ -142,7 +174,7 @@ def fishing():
     print("Please don't move/close/minimize the holocure window.")
     print("You can do other tasks as long as holocure window is visible.")
     print("However, doing heavy tasks may affect the program's ability to fish.")
-    
+    print("===============")
     hit_area = None
     
     pre_region = None
@@ -152,67 +184,77 @@ def fishing():
     prepared = None
     
     retry = max_retry
-    
-    while True:
-        # check for a hit_area inidcating a running minigame
-        if not hit_area:
-            prepared = None
-            # scan for "ok" box in case fishing has to continue
-            if pyautogui.locateOnScreen(images["ok"], grayscale=True, confidence=0.6):
-                print("continue fishing...")
-                press('enter')
-                time.sleep(0.05)
-                press('enter')
-                time.sleep(0.5)
-            else:
-                # scan for hit region once on full screen and later only near the old region to save scan time between button presses
-                hit_area = pyautogui.locateOnScreen(images["box"], grayscale=True, region=region, confidence=0.6)
-            if hit_area:
-                print("found hit area!")
-                print(hit_area)
-                pre_region = (hit_area.left+pre_left_offset, hit_area.top+pre_top_offset, pre_width, pre_height)
-                region = (hit_area.left+hitbox_left_offset, hit_area.top+hitbox_top_offset, hitbox_width, hitbox_height)
-                if debug:
-                    print(f"pre_region: {pre_region}")
-                    print(f"region: {region}")
-                debug_screenshot(pyautogui.screenshot(region=pre_region), title="scanbox")
-                debug_screenshot(pyautogui.screenshot(region=region), title="hitbox")
-        elif retry > 0:
-            # we found a running hit area
-            
-            retry -= 1
-            if not prepared:
-                # take a picture of the area before the hit area
-                pic = pyautogui.screenshot(region=pre_region)
-                # try to find a needle in advance
-                for needle in needles.items():
-                    if pyautogui.locate(images[needle[0]], pic, grayscale=True, confidence=0.8) is not None:
-                        print(f"prepare {needle[0]}")
-                        debug_screenshot(pic,title=f"prepare_{needle[0]}")
-                        prepared = needle
-                        retry = max_retry
-                        break
-                if not prepared:
-                    # we did not find any needles
-                    debug_screenshot(pic,title=f"scanning_{needle[0]}")
-            else:
-                # take a picture of the hit area and wait for the prepared needle to arrive
-                pic = pyautogui.screenshot(region=region)
-                if pyautogui.locate(images[prepared[0]], pic, grayscale=True, confidence=0.8) is not None:
-                    # needle arrived
-                    print(f"pressing {prepared[0]}")
-                    debug_screenshot(pic,title=f"hit_{prepared[0]}")
-                    press(prepared[1])
-                    # reset prepared needle
-                    prepared = None
-                    # check if hit area is still present to continue minigame
-                    hit_area = pyautogui.locateOnScreen(images["box"], region=region, grayscale=True, confidence=0.6)
+
+    # Specify which monitor has the holocure window. Monitor count starts at 1. So if you want monitor 2, mon=2
+    monitor = 1
+
+    hwndMain = win32gui.FindWindow(None, "HoloCure")
+
+    global win
+
+    with mss.mss() as sct:
+        while True:
+            if not hwndMain:
+                print("\rHolocure window not found! Trying again in 5 seconds...", end="")
+                time.sleep(5)
+                hwndMain = win32gui.FindWindow(None, "HoloCure")
+            elif hwndMain and not win:
+                print("Holocure window found!")
+                win = win32ui.CreateWindowFromHandle(hwndMain)
+
+            # check for a hit_area inidcating a running minigame
+            if not hit_area:
+                prepared = None
+                # scan for "ok" box in case fishing has to continue
+                if locate(sct, images["ok"], confidence=0.6, mon=monitor, debug_title="finding_ok"):
+                    print("continue fishing...")
+                    press('enter')
+                    time.sleep(0.05)
+                    press('enter')
+                    time.sleep(0.5)
                 else:
-                    # needle not yet arrived
-                    debug_screenshot(pic,title=f"waiting_{prepared[0]}")
-        else:
-            retry = max_retry
-            hit_area = pyautogui.locateOnScreen(images["box"], region=region, grayscale=True, confidence=0.6)
+                    # scan for hit region once on full screen and later only near the old region to save scan time between button presses
+                    hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
+                if hit_area:
+                    print("found hit area!")
+                    print(hit_area)
+                    # changed to bbox region. See https://chayanvinayak.blogspot.com/2013/03/bounding-box-in-pilpython-image-library.html
+                    pre_region = (hit_area[0]+pre_left_offset, hit_area[1]+pre_top_offset, hit_area[0]+pre_left_offset+pre_width, hit_area[1]+pre_top_offset+pre_height)
+                    region = (hit_area[0]+hitbox_left_offset, hit_area[1]+hitbox_top_offset, hit_area[0]+hitbox_left_offset+hitbox_width, hit_area[1]+hitbox_top_offset+hitbox_height)
+                    if debug:
+                        print(f"pre_region: {pre_region}")
+                        print(f"region: {region}")
+                        debug_screenshot(sct.grab((pre_region)), debug_title="scanbox")
+                        debug_screenshot(sct.grab((pre_region)), debug_title="hitbox")
+            elif retry > 0:
+                # we found a running hit area
+                
+                retry -= 1
+                if not prepared:
+                    # take a picture of the area before the hit area
+                    # try to find a needle in advance
+                    for needle in needles.items():
+                        if locate(sct, images[needle[0]], region=pre_region, confidence=0.7, mon=monitor, debug_title=f"scanning_{needle[0]}") is not None:
+                            print(f"prepare {needle[0]}")
+                            prepared = needle
+                            debug_screenshot(sct.grab((pre_region)), debug_title=f"prepare_{prepared[0]}")
+                            retry = max_retry
+                            break
+                else:
+                    # take a picture of the hit area and wait for the prepared needle to arrive
+                    # pic = pyautogui.screenshot(region=region)
+                    if locate(sct, images[prepared[0]], region=region, confidence=0.6, mon=monitor, debug_title=f"waiting_{prepared[0]}") is not None:
+                        # needle arrived
+                        print(f"pressing {prepared[0]}")
+                        debug_screenshot(sct.grab((region)), debug_title=f"hit_{prepared[0]}")
+                        press(prepared[1])
+                        # reset prepared needle
+                        prepared = None
+                        # check if hit area is still present to continue minigame
+                        hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
+            else:
+                retry = max_retry
+                hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
 
 
 try:
