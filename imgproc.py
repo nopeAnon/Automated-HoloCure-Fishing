@@ -1,4 +1,8 @@
-"""Contains constants and functions for image processing."""
+"""
+imgproc.py
+
+Contains constants and functions for image processing.
+"""
 
 import cv2
 

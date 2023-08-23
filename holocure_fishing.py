@@ -1,5 +1,6 @@
 import ctypes
 import json
+from math import floor
 from pathlib import Path
 from sys import platform
 import time
@@ -26,11 +27,12 @@ def main() -> None:
     # first time config load, but we check every second to see if it's changed
     keybinds = get_config()
     one_second_timer = time.time()
+    # Region of Interest - we only need this area of the screen
     BASE_ROI = (276, 242, 133, 38)  # left, top, right, bottom
     # Big loopy boi:
     while True:
         #   1. Use computer vision to get information about the game
-        #   2. Calculate what inputs to send
+        #   2. Use OpenCV template matching to check which button to press
         #   3. Send the inputs to the game
         last_time = time.time()
         # update the config once a second :)
@@ -54,7 +56,7 @@ def main() -> None:
         # used to send input - a bit wasteful to call every loop though...
         win = win32ui.CreateWindowFromHandle(hwndMain)
 
-        # resize the window down
+        # resize the image down to 360p equivalent
         # so the rest of the code is resolution-invariant
         img_src = cv2.resize(
             img_src,
@@ -70,36 +72,13 @@ def main() -> None:
 
         # maths time
         # look for rhythm game arrows first
-        # spacebar first
-        res = cv2.matchTemplate(
-            img_src[2 : 2 + 17, 103 + 2 : 133],
-            templates["space"],
-            cv2.TM_SQDIFF,
-            mask=masks["space"],
-        )
-        min_val, _, _, _ = cv2.minMaxLoc(res)
-        # arbitrary magic number, gets stuck if mouse hovering over button
-        if min_val < 1000:
-            press(win, keybinds["space"])
-
-        # left/right
-        for key in ("left", "right"):
+        for key in ("space", "left", "right", "up", "down"):
+            h, w, _ = templates[key].shape
+            # offset so all templates line up properly
+            h_offset = 10 - floor(h / 2)
+            w_offset = 10 - floor(w / 2)
             res = cv2.matchTemplate(
-                img_src[1 : 1 + 19, 103:133],
-                templates[key],
-                cv2.TM_SQDIFF,
-                mask=masks[key],
-            )
-            min_val, _, _, _ = cv2.minMaxLoc(res)
-            # arbitrary magic number, gets stuck if mouse hovering over button
-            if min_val < 1000:
-                press(win, keybinds[key])
-                break
-
-        # up/down
-        for key in ("up", "down"):
-            res = cv2.matchTemplate(
-                img_src[0:21, 103 + 1 : 133],
+                img_src[h_offset : h_offset + h, 103 + w_offset : 133],
                 templates[key],
                 cv2.TM_SQDIFF,
                 mask=masks[key],
@@ -111,14 +90,15 @@ def main() -> None:
                 break
 
         # look for "ok" button and press enter if so
+        h, w, _ = templates["ok"].shape
         res = cv2.matchTemplate(
-            img_src[9 : 9 + 29, 0:89],
+            img_src[9 : 9 + h, 0:w],
             templates["ok"],
             cv2.TM_SQDIFF,
             mask=masks["ok"],
         )
         min_val, _, _, _ = cv2.minMaxLoc(res)
-        # arbitrary magic number, handles the mouse being over the OK button
+        # arbitrary magic number, handles the mouse hovering over the OK button
         if min_val < 60_000_000:
             press(win, "enter")
             time.sleep(0.05)
