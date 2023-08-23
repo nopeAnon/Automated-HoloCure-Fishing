@@ -114,6 +114,9 @@ button = {
 }
 
 hwndMain = win32gui.FindWindow(None, "HoloCure")
+if not hwndMain:
+    input("Holocure window not found! Please use this again AFTER holocure has been opened. Press Enter to exit...")
+    exit()
 win = win32ui.CreateWindowFromHandle(hwndMain)
 
 def press(button_key: str):
@@ -141,12 +144,12 @@ def debug_screenshot(img, debug_title=f"{i}_screen.png"):
     mss.tools.to_png(_pil_frombytes(img), img.size, output=f"{dir_path}/debug/{i}_{debug_title}.png")
     i += 1
 
-def locate(sct, needle, region=None, confidence=0.8, method=cv.TM_CCOEFF_NORMED, debug_title="screen"):
+def locate(sct, needle, region=None, mon=1, confidence=0.8, method=cv.TM_CCOEFF_NORMED, debug_title="screen"):
     add_left = 0
     add_top = 0
     
     if not region:
-        region = sct.monitors[1]
+        region = sct.monitors[mon]
     else:
         add_left = region[0]
         add_top = region[1]
@@ -171,7 +174,6 @@ def fishing():
     print("Please don't move/close/minimize the holocure window.")
     print("You can do other tasks as long as holocure window is visible.")
     print("However, doing heavy tasks may affect the program's ability to fish.")
-    
     hit_area = None
     
     pre_region = None
@@ -181,13 +183,17 @@ def fishing():
     prepared = None
     
     retry = max_retry
+
+    # Specify which monitor has the holocure window. Monitor count starts at 1. So if you want monitor 2, mon=2
+    monitor = 1
+
     with mss.mss() as sct:
         while True:
             # check for a hit_area inidcating a running minigame
             if not hit_area:
                 prepared = None
                 # scan for "ok" box in case fishing has to continue
-                if locate(sct, images["ok"], confidence=0.6, debug_title="finding_ok"):
+                if locate(sct, images["ok"], confidence=0.6, mon=monitor, debug_title="finding_ok"):
                     print("continue fishing...")
                     press('enter')
                     time.sleep(0.05)
@@ -195,7 +201,7 @@ def fishing():
                     time.sleep(0.5)
                 else:
                     # scan for hit region once on full screen and later only near the old region to save scan time between button presses
-                    hit_area = locate(sct, images["box"], region=region, confidence=0.5, debug_title="finding_hit_area")
+                    hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
                 if hit_area:
                     print("found hit area!")
                     print(hit_area)
@@ -215,7 +221,7 @@ def fishing():
                     # take a picture of the area before the hit area
                     # try to find a needle in advance
                     for needle in needles.items():
-                        if locate(sct, images[needle[0]], region=pre_region, confidence=0.7, debug_title=f"scanning_{needle[0]}") is not None:
+                        if locate(sct, images[needle[0]], region=pre_region, confidence=0.7, mon=monitor, debug_title=f"scanning_{needle[0]}") is not None:
                             print(f"prepare {needle[0]}")
                             prepared = needle
                             debug_screenshot(sct.grab((pre_region)), debug_title=f"prepare_{prepared[0]}")
@@ -224,7 +230,7 @@ def fishing():
                 else:
                     # take a picture of the hit area and wait for the prepared needle to arrive
                     # pic = pyautogui.screenshot(region=region)
-                    if locate(sct, images[prepared[0]], region=region, confidence=0.6, debug_title=f"waiting_{prepared[0]}") is not None:
+                    if locate(sct, images[prepared[0]], region=region, confidence=0.6, mon=monitor, debug_title=f"waiting_{prepared[0]}") is not None:
                         # needle arrived
                         print(f"pressing {prepared[0]}")
                         debug_screenshot(sct.grab((region)), debug_title=f"hit_{prepared[0]}")
@@ -232,10 +238,10 @@ def fishing():
                         # reset prepared needle
                         prepared = None
                         # check if hit area is still present to continue minigame
-                        hit_area = locate(sct, images["box"], region=region, confidence=0.5, debug_title="finding_hit_area")
+                        hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
             else:
                 retry = max_retry
-                hit_area = locate(sct, images["box"], region=region, confidence=0.5, debug_title="finding_hit_area")
+                hit_area = locate(sct, images["box"], region=region, confidence=0.5, mon=monitor, debug_title="finding_hit_area")
 
 
 
