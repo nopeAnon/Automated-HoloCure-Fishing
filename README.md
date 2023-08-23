@@ -35,3 +35,7 @@ Or
 ### Recommended settings when fishing
 
 Any setting is fine! As long as the game is windowed and not fullscreen.
+
+# License
+
+This project is licensed under the GNU General Public License version 3.0. For the complete license text, see the file [LICENSE](LICENSE). This license applies to all files in this distribution.
