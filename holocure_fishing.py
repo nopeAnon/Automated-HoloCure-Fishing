@@ -103,9 +103,16 @@ def main() -> None:
         # arbitrary magic number, handles the mouse hovering over the OK button
         if min_val < 60_000_000:
             press(win, "enter")
-            time.sleep(0.2)
+            time.sleep(0.01)
             press(win, "enter")
-            time.sleep(0.2)
+            time.sleep(0.01)
+            press(win, "enter")
+            time.sleep(0.01)
+            press(win, "enter")
+            time.sleep(0.01)
+            press(win, "enter")
+            time.sleep(0.01)
+            press(win, "enter")
             counter += 1
             print("Fishing count: ", counter)
 
