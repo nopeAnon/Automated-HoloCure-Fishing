@@ -28,10 +28,8 @@ def main() -> None:
     keybinds = get_config()
     one_second_timer = time.time()
     counter = 0
-    last_time_pressed = time.time()
-    started = False
     # Region of Interest - we only need this area of the screen
-    base_roi = (276, 242, 133, 38)  # left, top, right, bottom
+    BASE_ROI = (276, 242, 133, 38)  # left, top, right, bottom
     # Big loopy boi:
     while True:
         #   1. Use computer vision to get information about the game
@@ -54,7 +52,7 @@ def main() -> None:
         if width == 0 or height == 0:  # skip if window minimised
             continue
         scale = round(height / 360)
-        roi = np.multiply(scale, base_roi)
+        roi = np.multiply(scale, BASE_ROI)
         img_src = capture_game(hwndMain, *roi)
         # used to send input - a bit wasteful to call every loop though...
         win = win32ui.CreateWindowFromHandle(hwndMain)
@@ -106,12 +104,11 @@ def main() -> None:
         # arbitrary magic number, handles the mouse hovering over the OK button
         if min_val < 60_000_000:
             press(win, "enter")
-            time.sleep(0.05)
+            time.sleep(0.1)
             press(win, "enter")
+            time.sleep(0.1)
             counter += 1
             print("Fishing count: ", counter)
-            if not started:
-                started = True
 
 
         elapsed = time.time() - last_time
@@ -124,14 +121,6 @@ def main() -> None:
         # slow the loop down to 100Hz max
         if elapsed < 0.01:
             time.sleep(0.01 - elapsed)
-
-        if started:
-            # case of exiting fishing mode, for some stupid reason
-            if time.time() - last_time_pressed > 30:
-                press(win, "enter")
-                # in order not to mess up the log if such a case happens
-                last_time_pressed = time.time()
-                print("Entering back into fishing mode")
 
 
 def get_config():
