@@ -88,7 +88,6 @@ def main() -> None:
             # arbitrary magic number, gets stuck if mouse hovering over button
             if min_val < 1000:
                 press(win, keybinds[key])
-                last_time_pressed = time.time()
                 time.sleep(0.2)
                 break
 
@@ -104,9 +103,9 @@ def main() -> None:
         # arbitrary magic number, handles the mouse hovering over the OK button
         if min_val < 60_000_000:
             press(win, "enter")
-            time.sleep(0.1)
+            time.sleep(0.2)
             press(win, "enter")
-            time.sleep(0.1)
+            time.sleep(0.2)
             counter += 1
             print("Fishing count: ", counter)
 
