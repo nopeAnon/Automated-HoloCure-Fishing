@@ -26,7 +26,7 @@ def main() -> None:
         ctypes.windll.shcore.SetProcessDpiAwareness(2)
     # first time config load, but we check every second to see if it's changed
     keybinds = get_config()
-    one_second_timer = time.time()
+    one_second_timer = time.perf_counter()
     counter = 0
     # Region of Interest - we only need this area of the screen
     BASE_ROI = (276, 242, 133, 38)  # left, top, right, bottom
@@ -35,7 +35,7 @@ def main() -> None:
         #   1. Use computer vision to get information about the game
         #   2. Use OpenCV template matching to check which button to press
         #   3. Send the inputs to the game
-        last_time = time.time()
+        last_time = time.perf_counter()
         # update the config once a second :)
         if last_time - one_second_timer > 1:
             keybinds = get_config()
@@ -117,7 +117,7 @@ def main() -> None:
             print("Fishing count: ", counter)
 
 
-        elapsed = time.time() - last_time
+        elapsed = time.perf_counter() - last_time
         # debug to see how fast the loop runs
         if DEBUG:
             fps = 1 / elapsed
