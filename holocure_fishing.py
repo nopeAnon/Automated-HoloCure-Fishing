@@ -1,16 +1,13 @@
-import ctypes
 import json
-from math import floor
-from pathlib import Path
-from sys import platform
+import sys
 import time
+from math import floor
 
 import cv2
 import numpy as np
-import win32con, win32gui, win32ui
 
 from imgproc import templates, masks
-from send_input import press
+from platform import Platform
 
 DEBUG = False
 
@@ -21,15 +18,20 @@ def main() -> None:
     print("Please open HoloCure, go to Holo House, and start fishing!")
     print("You can do other tasks as long as the HoloCure window isn't minimised.")
     print("It works even if the game is in the background!")
-    # disable program DPI scaling - affects screen capture
-    if platform == "win32":
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
+    platform: Platform = None
+    if sys.platform == "win32":
+        from platform_windows import Windows
+        platform = Windows()
+    else:
+        raise OSError("Unsupported operating system!")
+
     # first time config load, but we check every second to see if it's changed
-    keybinds = get_config()
+    keybinds = get_config(platform.config_file_path())
     one_second_timer = time.perf_counter()
     counter = 0
     # Region of Interest - we only need this area of the screen
-    BASE_ROI = (276, 242, 133, 38)  # left, top, right, bottom
+    BASE_ROI = (276, 242, 133, 38)  # left, top, width, height
     # Big loopy boi:
     while True:
         #   1. Use computer vision to get information about the game
@@ -38,24 +40,18 @@ def main() -> None:
         last_time = time.perf_counter()
         # update the config once a second :)
         if last_time - one_second_timer > 1:
-            keybinds = get_config()
+            keybinds = get_config(platform.config_file_path())
             one_second_timer = last_time
         # find the window every loop - a bit ugly, but we can handle the game
         # closing and opening this way (there's probably a better way though)
-        hwndMain = win32gui.FindWindow("YYGameMakerYY", "HoloCure")
-        if hwndMain == 0:
-            time.sleep(1)
-            continue
+        platform.wait_until_application_handle()
         # capture only the area we need for image processing
-        left, top, right, bottom = win32gui.GetClientRect(hwndMain)
-        width, height = right - left, bottom - top
+        left, top, width, height = platform.get_holocure_bounds()
         if width == 0 or height == 0:  # skip if window minimised
             continue
         scale = round(height / 360)
         roi = np.multiply(scale, BASE_ROI)
-        img_src = capture_game(hwndMain, *roi)
-        # used to send input - a bit wasteful to call every loop though...
-        win = win32ui.CreateWindowFromHandle(hwndMain)
+        img_src = platform.holocure_screenshot(roi)
 
         # resize the image down to 360p equivalent
         # so the rest of the code is resolution-invariant
@@ -87,7 +83,7 @@ def main() -> None:
             min_val, _, _, _ = cv2.minMaxLoc(res)
             # arbitrary magic number, gets stuck if mouse hovering over button
             if min_val < 1000:
-                press(win, keybinds[key])
+                platform.press_key(keybinds[key])
                 time.sleep(0.2)
                 break
 
@@ -102,20 +98,19 @@ def main() -> None:
         min_val, _, _, _ = cv2.minMaxLoc(res)
         # arbitrary magic number, handles the mouse hovering over the OK button
         if min_val < 60_000_000:
-            press(win, "enter")
+            platform.press_key("enter")
             time.sleep(0.01)
-            press(win, "enter")
+            platform.press_key("enter")
             time.sleep(0.01)
-            press(win, "enter")
+            platform.press_key("enter")
             time.sleep(0.01)
-            press(win, "enter")
+            platform.press_key("enter")
             time.sleep(0.01)
-            press(win, "enter")
+            platform.press_key("enter")
             time.sleep(0.01)
-            press(win, "enter")
+            platform.press_key("enter")
             counter += 1
             print("Fishing count: ", counter)
-
 
         elapsed = time.perf_counter() - last_time
         # debug to see how fast the loop runs
@@ -129,11 +124,22 @@ def main() -> None:
             time.sleep(0.01 - elapsed)
 
 
-def get_config():
+def get_config(path):
     """Load game configuration and return a table."""
     # TODO: maybe only read if the file is modified
-    SETTINGS_PATH = f"{Path.home()}/AppData/Local/HoloCure/settings.json"
-    with open(SETTINGS_PATH) as config_file:
+
+    defaults = {
+        "space": "space",
+        "left": "a",
+        "right": "d",
+        "up": "w",
+        "down": "s",
+    }
+
+    if not path:
+        return defaults
+
+    with open(path) as config_file:
         config = json.load(config_file)
         keybinds = config.get("theButtons")
         if keybinds:
@@ -151,44 +157,6 @@ def get_config():
             "up": "w",
             "down": "s",
         }
-
-
-def capture_game(hwnd, left: int, top: int, width: int, height: int):
-    """Get a screenshot of the given window.
-
-    Works even if target hwnd is behind other windows, but not minimised.
-
-    From https://stackoverflow.com/a/62293979
-    and https://stackoverflow.com/q/40098142
-    and https://stackoverflow.com/a/68310347"""
-    # TODO: can probably refactor this as a class to avoid calling
-    # constructors/destructors all the time
-    # calculate offset (e.g. from title bar, window borders)
-    offset_left, offset_top, *_ = win32gui.GetWindowRect(hwnd)
-    offset_left, offset_top = win32gui.ScreenToClient(hwnd, (offset_left, offset_top))
-    wDC = win32gui.GetWindowDC(hwnd)
-    dcObj = win32ui.CreateDCFromHandle(wDC)
-    cDC = dcObj.CreateCompatibleDC()
-    dataBitMap = win32ui.CreateBitmap()
-    dataBitMap.CreateCompatibleBitmap(dcObj, width, height)
-    cDC.SelectObject(dataBitMap)
-    cDC.BitBlt(
-        (0, 0),
-        (width, height),
-        dcObj,
-        (left - offset_left, top - offset_top),
-        win32con.SRCCOPY,
-    )
-
-    im = dataBitMap.GetBitmapBits(True)
-    img = np.frombuffer(im, dtype=np.uint8).reshape((height, width, 4))
-    converted = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
-
-    dcObj.DeleteDC()
-    cDC.DeleteDC()
-    win32gui.ReleaseDC(hwnd, wDC)
-    win32gui.DeleteObject(dataBitMap.GetHandle())
-    return converted
 
 
 if __name__ == "__main__":
