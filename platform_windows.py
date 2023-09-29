@@ -30,8 +30,8 @@ class Windows(Platform):
 
             time.sleep(1)
 
-        self.handle = hwndMain,
-        self.window = win32gui.CreateWindowFromHandle(hwndMain)
+        self.handle = hwndMain
+        self.window = win32ui.CreateWindowFromHandle(hwndMain)
 
     def config_file_path(self):
         path = f"{Path.home()}/AppData/Local/HoloCure/settings.json"
@@ -44,7 +44,7 @@ class Windows(Platform):
         if not self.handle:
             return None
         left, right, top, bottom = win32gui.GetClientRect(self.handle)
-        return left, right, right - left, bottom - top
+        return left, right, top, bottom
 
     def holocure_screenshot(self, roi):
         if not self.handle:
@@ -56,7 +56,7 @@ class Windows(Platform):
         if not self.window:
             return
 
-        press(self.window, "enter")
+        press(self.window, key)
 
 
 def capture_game(hwnd, left: int, top: int, width: int, height: int):
