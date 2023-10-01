@@ -5,9 +5,7 @@ from math import floor
 
 import cv2
 import numpy as np
-
 from imgproc import templates, masks
-from platform import Platform
 
 DEBUG = False
 
@@ -78,7 +76,7 @@ def main() -> None:
             h_offset = 10 - floor(h / 2)
             w_offset = 10 - floor(w / 2)
             res = cv2.matchTemplate(
-                img_src[h_offset: h_offset + h, 103 + w_offset: 133],
+                img_src[h_offset: h_offset + h, 103 + w_offset + platform.offset(counter): 133 + platform.offset(counter)],
                 templates[key],
                 cv2.TM_SQDIFF,
                 mask=masks[key],

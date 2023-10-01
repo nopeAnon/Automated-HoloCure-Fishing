@@ -106,3 +106,7 @@ class Linux(Platform):
         # Example:
         # return "/home/anton/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"
         return None
+
+    def offset(self, fish_count):
+        # 0 pixels at 0 fish, -17 pixels at speed 7
+        return np.floor(-17 * min(fish_count, 70) / 70)
