@@ -19,10 +19,13 @@ def main() -> None:
     print("You can do other tasks as long as the HoloCure window isn't minimised.")
     print("It works even if the game is in the background!")
 
-    platform: Platform = None
-    if sys.platform == "win32":
+    platform_name = sys.platform
+    if platform_name == "win32":
         from platform_windows import Windows
         platform = Windows()
+    elif platform_name == "linux":
+        from platform_linux import Linux
+        platform = Linux()
     else:
         raise OSError("Unsupported operating system!")
 
