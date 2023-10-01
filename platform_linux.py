@@ -1,3 +1,4 @@
+import math
 import re
 import subprocess
 import time
@@ -108,5 +109,5 @@ class Linux(Platform):
         return None
 
     def offset(self, fish_count):
-        # 0 pixels at 0 fish, -17 pixels at speed 7
-        return np.floor(-17 * min(fish_count, 70) / 70)
+        # 0 pixels at 0 fish, -15 pixels at speed 7
+        return math.floor(-15 * min(fish_count, 70) / 70)
