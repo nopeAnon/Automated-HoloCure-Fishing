@@ -72,5 +72,20 @@ class Platform(ABC):
         key: str, the key string
             TODO: not platform-agnostic for now, most windows keybinds should also work on linux
         """
+        pass
 
+    @abstractmethod
+    def offset(self, fish_count: int) -> int:
+        """Specify the offset from the main circle when we should hit the key.
+
+        Parameters
+        ----------
+        fish_count : int,
+
+        Returns
+        -------
+        An int, the offset in pixels, right is positive
+        """
+        pass
+  
 
