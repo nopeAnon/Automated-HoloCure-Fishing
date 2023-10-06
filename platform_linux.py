@@ -7,9 +7,55 @@ import numpy as np
 
 from platform import Platform
 
-import Xlib.XK
-from Xlib import X, protocol
+from Xlib import X, XK, protocol
 from Xlib.display import Display
+
+keycodes = {
+    "0": XK.XK_0,
+    "1": XK.XK_1,
+    "2": XK.XK_2,
+    "3": XK.XK_3,
+    "4": XK.XK_4,
+    "5": XK.XK_5,
+    "6": XK.XK_6,
+    "7": XK.XK_7,
+    "8": XK.XK_8,
+    "9": XK.XK_9,
+    "a": XK.XK_a,
+    "b": XK.XK_b,
+    "c": XK.XK_c,
+    "d": XK.XK_d,
+    "e": XK.XK_e,
+    "f": XK.XK_f,
+    "g": XK.XK_g,
+    "h": XK.XK_h,
+    "i": XK.XK_i,
+    "j": XK.XK_j,
+    "k": XK.XK_k,
+    "l": XK.XK_l,
+    "m": XK.XK_m,
+    "n": XK.XK_n,
+    "o": XK.XK_o,
+    "p": XK.XK_p,
+    "q": XK.XK_q,
+    "r": XK.XK_r,
+    "s": XK.XK_s,
+    "t": XK.XK_t,
+    "u": XK.XK_u,
+    "v": XK.XK_v,
+    "w": XK.XK_w,
+    "x": XK.XK_x,
+    "y": XK.XK_y,
+    "z": XK.XK_z,
+    "space": XK.XK_space,
+    "enter": XK.XK_Return,
+    "left": XK.XK_Left,
+    "up": XK.XK_Up,
+    "right": XK.XK_Right,
+    "down": XK.XK_Down,
+    "shift": XK.XK_Shift_L,
+    "ctrl": XK.XK_Control_L,
+}
 
 
 class Linux(Platform):
@@ -30,6 +76,7 @@ class Linux(Platform):
         # The actual visible Holocure window might be nested in any number of parent windows depending on the
         # compositor. We henceforth have to search recursively.
         disp = Display()
+
         def search_holocure_window(window):
             name = window.get_wm_name()
             classs = window.get_wm_class()
@@ -50,10 +97,9 @@ class Linux(Platform):
         return 0, 0, w, h
 
     def press_key(self, key):
-        if key == "enter":
-            key = "Return"
-        # TODO: temporary hack, but handling holocure keys -> platform keys should be done in the platform module as
-        #  well in the future, i.e. have a map like the one in send_input.py for windows.
+        if key not in keycodes:
+            print(f"key {key} not supported, not pressing")
+            return
 
         disp = Display()
         the_root = disp.screen().root
@@ -62,7 +108,7 @@ class Linux(Platform):
             time=X.CurrentTime,
             root=the_root, window=self._window, same_screen=0, child=X.NONE,
             root_x=0, root_y=0, event_x=0, event_y=0,
-            state=0, detail=disp.keysym_to_keycode(Xlib.XK.string_to_keysym(key))
+            state=0, detail=disp.keysym_to_keycode(keycodes[key])
         )
         disp.send_event(self._window, event, propagate=True)
         disp.sync()
@@ -74,7 +120,7 @@ class Linux(Platform):
             time=X.CurrentTime,
             root=the_root, window=self._window, same_screen=0, child=X.NONE,
             root_x=0, root_y=0, event_x=0, event_y=0,
-            state=0, detail=disp.keysym_to_keycode(Xlib.XK.string_to_keysym(key))
+            state=0, detail=disp.keysym_to_keycode(keycodes[key])
         )
         disp.send_event(self._window, event, propagate=True)
         disp.sync()
