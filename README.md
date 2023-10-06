@@ -19,11 +19,9 @@ This works in any **windowed** resolution, and you can move the window around, r
 # Getting Started on Linux
 
 1. Make sure you have Python installed.
-2. Install `Xwininfo` from your distribution's package manager.
- Might already be preinstalled on a lot of systems.
-3. Clone or download this repo.
-4. Open HoloCure and head to the fishing area.
-5. Execute the run.sh script. (on some systems you might have to make the script executable first)
+2. Clone or download this repo.
+3. Open HoloCure and head to the fishing area.
+4. Execute the run.sh script. (on some systems you might have to make the script executable first)
 ```shell
 $ chmod +x run.sh
 $ ./run.sh
@@ -33,7 +31,8 @@ $ ./run.sh
 Notes (read first before running!)
 - This has only been tested on X11. On Wayland, Holocure runs under the Xwayland compatibility layer so it **might** work, but I don't have a machine to test.
 - Due to privacy issues, modern Linux applications and window managers don't listen to X key events when the window isn't focused. I am looking into workarounds but for now you'll have to keep the HoloCure window focused for the script to work.
-- If you don't use WASD to move, you'll have to edit the script for it to pick up your custom keybinds:
+- If you have Steam installed in a non-standard location the script might not be able to pick up your custom keybinds. To
+    point the program to your keybinds:
     1. Locate HoloCure's `settings.json` file. Should be located under
     ```<steam install dir>/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json```
     2. Open `platform_linux.py` and head over to the function named *def config_file_path*. Change the line so that it points to your settings.json file path.

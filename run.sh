@@ -6,12 +6,6 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# Check if Xwininfo is installed
-if ! command -v xwininfo &> /dev/null; then
-    echo "Error: Xwininfo is not installed on this system. Please install it using your distribution's package manager"
-    exit 1
-fi
-
 # Check if x11 session
 if [ "$XDG_SESSION_TYPE" != "x11" ]; then
     echo "Warning: Couldn't determine if running on X11. Wayland and other compositors are not suppported."
