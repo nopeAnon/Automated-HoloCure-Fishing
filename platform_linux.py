@@ -2,6 +2,7 @@ import math
 import re
 import subprocess
 import time
+from pathlib import Path
 
 import numpy as np
 
@@ -54,15 +55,22 @@ keycodes = {
     "right": XK.XK_Right,
     "down": XK.XK_Down,
     "shift": XK.XK_Shift_L,
-    "ctrl": XK.XK_Control_L,
+    "ctrl": XK.XK_Control_L
 }
-
+possible_paths = {
+    Path(f"{Path.home()}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"),
+    Path(f"{Path.home()}/.local/share/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"),
+    Path(f"{Path.home()}/.var/app/io.itch.itch/data/wine/drive_c/users/ggg/AppData/Local/HoloCure/settings.json")
+}
 
 class Linux(Platform):
 
     def __init__(self):
         # initialized in wait_until_application_handle
         self._window = None
+
+        # initialized in get_config_file_path
+        self._config_path = "no"
 
     def wait_until_application_handle(self):
         # This function gets called every frame to check whether the window handle is still valid (i.e. if the
@@ -130,10 +138,21 @@ class Linux(Platform):
         return np.frombuffer(raw.data, dtype=np.uint8).reshape((roi[3], roi[2], 4))[:, :, :3]
 
     def config_file_path(self):
-        # If you have custom keybinds, remove None and add the path of the settings.json file between double qoutes.
-        # Example:
-        # return "/home/anton/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"
-        return None
+        # If you have custom keybinds, uncomment the following line, replacing the string with the path to your
+        # settings.json file
+        # return "/path/to/settings.json"
+
+        if not self._config_path == "no":
+            return self._config_path
+
+        ok_path = next(path for path in possible_paths if path.exists())
+
+        if not ok_path:
+            print("Could not find keybinds file, take a look in the readme file how to specifiy that location")
+            self._config_path = None
+            return None
+
+        return ok_path
 
     def offset(self, fish_count):
         # 0 pixels at 0 fish, -15 pixels at speed 7
