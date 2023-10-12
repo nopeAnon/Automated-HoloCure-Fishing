@@ -2,73 +2,112 @@ import math
 import re
 import subprocess
 import time
+from pathlib import Path
 
 import numpy as np
 
 from platform import Platform
 
-import Xlib.XK
-from Xlib import X, protocol
+from Xlib import X, XK, protocol
 from Xlib.display import Display
 
+keycodes = {
+    "0": XK.XK_0,
+    "1": XK.XK_1,
+    "2": XK.XK_2,
+    "3": XK.XK_3,
+    "4": XK.XK_4,
+    "5": XK.XK_5,
+    "6": XK.XK_6,
+    "7": XK.XK_7,
+    "8": XK.XK_8,
+    "9": XK.XK_9,
+    "a": XK.XK_a,
+    "b": XK.XK_b,
+    "c": XK.XK_c,
+    "d": XK.XK_d,
+    "e": XK.XK_e,
+    "f": XK.XK_f,
+    "g": XK.XK_g,
+    "h": XK.XK_h,
+    "i": XK.XK_i,
+    "j": XK.XK_j,
+    "k": XK.XK_k,
+    "l": XK.XK_l,
+    "m": XK.XK_m,
+    "n": XK.XK_n,
+    "o": XK.XK_o,
+    "p": XK.XK_p,
+    "q": XK.XK_q,
+    "r": XK.XK_r,
+    "s": XK.XK_s,
+    "t": XK.XK_t,
+    "u": XK.XK_u,
+    "v": XK.XK_v,
+    "w": XK.XK_w,
+    "x": XK.XK_x,
+    "y": XK.XK_y,
+    "z": XK.XK_z,
+    "space": XK.XK_space,
+    "enter": XK.XK_Return,
+    "left": XK.XK_Left,
+    "up": XK.XK_Up,
+    "right": XK.XK_Right,
+    "down": XK.XK_Down,
+    "shift": XK.XK_Shift_L,
+    "ctrl": XK.XK_Control_L
+}
+possible_paths = {
+    Path(f"{Path.home()}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"),
+    Path(f"{Path.home()}/.local/share/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"),
+    Path(f"{Path.home()}/.var/app/io.itch.itch/data/wine/drive_c/users/ggg/AppData/Local/HoloCure/settings.json")
+}
 
 class Linux(Platform):
 
     def __init__(self):
         # initialized in wait_until_application_handle
         self._window = None
-        self._bounds = None
 
-        # initialized in holocure screenshot
-        self._image = None
+        # initialized in get_config_file_path
+        self._config_path = "no"
 
     def wait_until_application_handle(self):
-        # this function gets called every frame to check whether the window handle is still valid (i.e. if the
+        # This function gets called every frame to check whether the window handle is still valid (i.e. if the
         #  program has been closed) to handle closing & reopening of Holocure.
-        # This is a bad idea on linux because the only way to get a valid window id for Holocure is by using a seperate
-        #  xwininfo program that needs to be called as a subprocess. This adds frametime which slows the entire program
-        #  down.
-        # So we assume the first Holocure window we find will be valid indefinitely. If the user closes Holocure, the
-        #  script will have to be restarted.
+        # This is not necessarily the smartest idea on Linux because we have to recursive loop over all windows to find
+        #  the correct one.
+        # So assume the window will be valid indefinitely.
         if self._window:
             return
 
-        while True:
-            try:
-                out = subprocess.check_output(["xwininfo", "-name", "HoloCure"], universal_newlines=True)
-                break
-            except subprocess.CalledProcessError:
-                time.sleep(5)
-
-        window_id_hex = re.search(r'Window id: (0x[0-9a-fA-F]+)', out)
-        window_id_decimal = int(window_id_hex.group(1), 16)
-
+        # The actual visible Holocure window might be nested in any number of parent windows depending on the
+        # compositor. We henceforth have to search recursively.
         disp = Display()
-        self._window = disp.create_resource_object("window", int(window_id_decimal))
+
+        def search_holocure_window(window):
+            name = window.get_wm_name()
+            classs = window.get_wm_class()
+            if name == "HoloCure" and classs == ("steam_app_2420510", "steam_app_2420510"):
+                self._window = window
+                return
+
+            for child in window.query_tree().children:
+                search_holocure_window(child)
+
+        search_holocure_window(disp.screen().root)
 
     def get_holocure_bounds(self):
-        # this function gets called every frame to check whether the window has been moved / changed resolution.
-        # Similar problems to wait_until_application_handle.
-        # once we find valid bounds, assume they'll be valid indefinitely.
-        # Note: the x & y position doesn't actually matter because we take screenshots relatively, only changing
-        #       resolution will break the script.
-        if self._bounds:
-            return self._bounds
-
-        xwin_out = subprocess.run(["xwininfo", "-name", "HoloCure"], capture_output=True, text=True).stdout
-
-        geometry_pattern = re.compile(r'-geometry (\d+)x(\d+)\+(\d+)\+(\d+)')
-        geometry_match = geometry_pattern.search(xwin_out)
-
-        self._bounds = (int(geometry_match.group(3)), int(geometry_match.group(4)), int(geometry_match.group(1)), int(
-            geometry_match.group(2)))
-        return self._bounds
+        # Absolute position of the window doesn't matter because we can screenshot HoloCure seperately. We only store
+        #  width and height
+        geometry = self._window.get_geometry()
+        w, h = geometry.width, geometry.height
+        return 0, 0, w, h
 
     def press_key(self, key):
-        if key == "enter":
-            key = "Return"
-        # TODO: temporary hack, but handling holocure keys -> platform keys should be done in the platform module as
-        #  well in the future, i.e. have a map like the one in send_input.py for windows.
+        if key not in keycodes:
+            print(f"key {key} not supported, not pressing")
+            return
 
         disp = Display()
         the_root = disp.screen().root
@@ -77,7 +116,7 @@ class Linux(Platform):
             time=X.CurrentTime,
             root=the_root, window=self._window, same_screen=0, child=X.NONE,
             root_x=0, root_y=0, event_x=0, event_y=0,
-            state=0, detail=disp.keysym_to_keycode(Xlib.XK.string_to_keysym(key))
+            state=0, detail=disp.keysym_to_keycode(keycodes[key])
         )
         disp.send_event(self._window, event, propagate=True)
         disp.sync()
@@ -89,24 +128,31 @@ class Linux(Platform):
             time=X.CurrentTime,
             root=the_root, window=self._window, same_screen=0, child=X.NONE,
             root_x=0, root_y=0, event_x=0, event_y=0,
-            state=0, detail=disp.keysym_to_keycode(Xlib.XK.string_to_keysym(key))
+            state=0, detail=disp.keysym_to_keycode(keycodes[key])
         )
         disp.send_event(self._window, event, propagate=True)
         disp.sync()
 
     def holocure_screenshot(self, roi=None):
-        width, height = self._bounds[2], self._bounds[3]
-        raw = self._window.get_image(0, 0, width, height, X.ZPixmap, 0xffffffff)
-        # numpy magic trick
-        self._image = np.frombuffer(raw.data, dtype=np.uint8).reshape((height, width, 4))[:, :, :3]
-
-        return self._image[roi[1]:roi[1] + roi[3], roi[0]:roi[0] + roi[2], :]
+        raw = self._window.get_image(*roi, X.ZPixmap, 0xffffffff)
+        return np.frombuffer(raw.data, dtype=np.uint8).reshape((roi[3], roi[2], 4))[:, :, :3]
 
     def config_file_path(self):
-        # If you have custom keybinds, remove None and add the path of the settings.json file between double qoutes.
-        # Example:
-        # return "/home/anton/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"
-        return None
+        # If you have custom keybinds, uncomment the following line, replacing the string with the path to your
+        # settings.json file
+        # return "/path/to/settings.json"
+
+        if not self._config_path == "no":
+            return self._config_path
+
+        ok_path = next(path for path in possible_paths if path.exists())
+
+        if not ok_path:
+            print("Could not find keybinds file, take a look in the readme file how to specifiy that location")
+            self._config_path = None
+            return None
+
+        return ok_path
 
     def offset(self, fish_count):
         # 0 pixels at 0 fish, -15 pixels at speed 7
