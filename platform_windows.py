@@ -9,7 +9,7 @@ import win32con
 import win32gui
 import win32ui
 
-from platform import Platform
+from platform_UNF import Platform
 
 keycodes = {
     "0": 0x30,

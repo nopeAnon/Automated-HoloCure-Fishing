@@ -8,6 +8,7 @@ import numpy as np
 from imgproc import templates, masks
 import PIL
 DEBUG = False
+from matplotlib import pyplot as plt
 
 def fishing_mode(platform) -> None:
     # first time config load, but we check every second to see if it's changed
@@ -58,6 +59,7 @@ def fishing_mode(platform) -> None:
             # offset so all templates line up properly
             h_offset = 10 - floor(h / 2)
             w_offset = 10 - floor(w / 2)
+            a = img_src[h_offset: h_offset + h, 103 + w_offset + platform.offset(counter): 133 + platform.offset(counter)]
             res = cv2.matchTemplate(
                 img_src[h_offset: h_offset + h, 103 + w_offset + platform.offset(counter): 133 + platform.offset(counter)],
                 templates[key],
