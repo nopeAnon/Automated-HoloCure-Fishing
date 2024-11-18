@@ -14,6 +14,7 @@ raw = dict(
     right=cv2.imread("./img/360p/right.png", cv2.IMREAD_UNCHANGED),
     up=cv2.imread("./img/360p/up.png", cv2.IMREAD_UNCHANGED),
     down=cv2.imread("./img/360p/down.png", cv2.IMREAD_UNCHANGED),
+    pointer=cv2.imread("./img/360p/pointer.png", cv2.IMREAD_UNCHANGED),
 )
 
 templates = {}
