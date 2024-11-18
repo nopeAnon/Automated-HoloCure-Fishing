@@ -127,7 +127,8 @@ def pick_axe_mode(platform) -> None:
     keybinds = get_config(platform.config_file_path())
     one_second_timer = time.perf_counter()
     counter = 0
-    BASE_ROI = (207, 251, 212, 44)  # left, top, width, height
+    BASE_ROI = (203, 251, 216, 44)  # left, top, width, height
+    SCAN_REGION = (24, 30, -3, 33) # top, bottom, start_x_offset, end_x_offset
     # Big loopy boi:
     while True:
         #   1. Use computer vision to get information about the game
@@ -164,7 +165,7 @@ def pick_axe_mode(platform) -> None:
             area_start_x, area_end_x = check_red_area(img_src)
         ran_checker = True
         if area_end_x - area_start_x > 0:
-            detection_area = img_src[23:31,area_start_x+12:area_end_x+12]
+            detection_area = img_src[SCAN_REGION[0]:SCAN_REGION[1],area_start_x+SCAN_REGION[2]:area_end_x+SCAN_REGION[3]]
             res = cv2.matchTemplate(
                 detection_area,
                 templates["pointer"],
@@ -175,17 +176,18 @@ def pick_axe_mode(platform) -> None:
             min_val, _, _, _ = cv2.minMaxLoc(res)
             # print(min_val)
 
-            if min_val < 100.0:
+            if min_val < 100:
                 platform.press_key("enter")
-                time.sleep(0.2)
+                time.sleep(0.4) # The delay is 0.35
 
         if DEBUG:
             cv2.namedWindow("Source", cv2.WINDOW_NORMAL)
-            cv2.imshow("Source", img_src)
-            cv2.resizeWindow("Source", img_src.shape[1] * 2, img_src.shape[0] * 2)
+            sourceImg = cv2.rectangle(img_src, (area_start_x+SCAN_REGION[2], SCAN_REGION[0]), (area_end_x+SCAN_REGION[3], SCAN_REGION[1]), (0, 0, 255), 1)
+            cv2.imshow("Source", sourceImg)
+            cv2.resizeWindow("Source", sourceImg.shape[1] * 2, sourceImg.shape[0] * 2)
             if area_end_x - area_start_x > 0:
                 cv2.namedWindow("Detection Area", cv2.WINDOW_NORMAL)    
-                cv2.imshow("Detection Area", img_src[23:31,area_start_x+12:area_end_x+12])
+                cv2.imshow("Detection Area", img_src[SCAN_REGION[0]:SCAN_REGION[1],area_start_x+SCAN_REGION[2]:area_end_x+SCAN_REGION[3]])
                 cv2.resizeWindow("Detection Area", detection_area.shape[0] * 2, detection_area.shape[1] * 2)
             
         a = img_src[23:img_src.shape[0], 0:img_src.shape[1]]
