@@ -16,7 +16,8 @@ Open holocure steam page > Click the gear icon (settings) > Manage... > Browse l
 3. Execute [launch_python.bat](launch_python.bat) to open a console using the environment or copy the content to your console or skip this step and
 4. Open HoloCure.
 5. Start fishing by opening holocure_fishing.py or in your console "python holocure_fishing.py" or by any other means you want.
-6. Go to Holo House and start fishing.
+6. Select if you want to fish or mine.
+6. Go to Holo House and start fishing or mining.
 7. Enjoy!
 
 # Getting Started on Linux
