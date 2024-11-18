@@ -5,6 +5,9 @@ This project aims to automate the fishing in HoloCure.
 
 This works in any **windowed** resolution, and you can move the window around, resize it or have it in the background, BUT it doesn't work when the game is minimised. Works with multi-monitor setups.
 
+# PLEASE DISABLE FULLSCREEN OPTIMIZATION ON HOLOCURE IF IT IS NOT WORKING
+Open holocure steam page > Click the gear icon (settings) > Manage... > Browse local files > Right click 'HoloCure.exe' > Click 'Compatibility' tab > Enable the 'Disable fullscreen optimazations'
+
 # Getting Started on Windows
 ~~[Video Tutorial](https://drive.google.com/file/d/14Xha8OWFiv26zBD4cYjMsHLD896q8RH4/view?usp=sharing) for absolute beginners.~~ (*working on making a new one*)
 
