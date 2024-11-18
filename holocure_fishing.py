@@ -6,9 +6,7 @@ from math import floor
 import cv2
 import numpy as np
 from imgproc import templates, masks
-import PIL
 DEBUG = False
-from matplotlib import pyplot as plt
 
 def fishing_mode(platform) -> None:
     # first time config load, but we check every second to see if it's changed
@@ -175,10 +173,10 @@ def pick_axe_mode(platform) -> None:
             )
 
             min_val, _, _, _ = cv2.minMaxLoc(res)
-            print(min_val)
+            # print(min_val)
 
             if min_val < 100.0:
-                platform.press_key("space")
+                platform.press_key("enter")
                 time.sleep(0.2)
 
         if DEBUG:
@@ -214,7 +212,7 @@ def pick_axe_mode(platform) -> None:
             time.sleep(0.01)
             platform.press_key("enter")
             counter += 1
-            print("Fishing count: ", counter)
+            print("Mining count: ", counter)
             ran_checker = False
 
         elapsed = time.perf_counter() - last_time
