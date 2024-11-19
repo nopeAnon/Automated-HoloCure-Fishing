@@ -1,7 +1,7 @@
-# Automated HoloCure fishing
+# Automated HoloCure fishing & mining!
 ![10000 combo](https://github.com/Hexus-One/Automated-HoloCure-Fishing/assets/5473838/9d92ab91-d6f2-4f1d-8d19-3885dc5a0c7a)
 
-This project aims to automate the fishing in HoloCure.
+This project aims to automate the fishing and mining minigames in HoloCure.
 
 This works in any **windowed** resolution, and you can move the window around, resize it or have it in the background, BUT it doesn't work when the game is minimised. Works with multi-monitor setups.
 
