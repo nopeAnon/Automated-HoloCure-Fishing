@@ -55,7 +55,8 @@ keycodes = {
     "right": XK.XK_Right,
     "down": XK.XK_Down,
     "shift": XK.XK_Shift_L,
-    "ctrl": XK.XK_Control_L
+    "ctrl": XK.XK_Control_L,
+    "alt": XK.XK_Alt_L
 }
 possible_paths = {
     Path(f"{Path.home()}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/compatdata/2420510/pfx/drive_c/users/steamuser/AppData/Local/HoloCure/settings.json"),

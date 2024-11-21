@@ -56,6 +56,7 @@ keycodes = {
     "down": 0x28,
     "shift": 0x10,
     "ctrl": 0x11,
+    "alt": 0x12
 }
 
 
