@@ -11,6 +11,10 @@ Open holocure steam page > Click the gear icon (settings) > Manage... > Browse l
 # Getting Started on Windows
 ~~[Video Tutorial](https://drive.google.com/file/d/14Xha8OWFiv26zBD4cYjMsHLD896q8RH4/view?usp=sharing) for absolute beginners.~~ (*working on making a new one*)
 
+## Using from release
+extract the '**Automated-HoloCure-Fishing-vX.X.X.zip**' and then open **holocure_fishing.exe**
+
+## Using from source
 1. Clone this project.
 2. Execute [prepare.bat](prepare.bat) or copy content to your console (this will setup a python "test_env" environment so you do not contaminate your system wide python installation).
 3. Execute [launch_python.bat](launch_python.bat) to open a console using the environment or copy the content to your console or skip this step and
@@ -63,6 +67,18 @@ Or
 * opencv-python (`pip install opencv-python`)
 * pywin32 (`pip install pywin32`)
 
+## Building exe from source
+[//]: <> (TODO: Make a setup.py)
+run:
+`pip install nuitka`
+
+then run:
+```powershell
+python -m nuitka --include-data-files="img/360p/*.png=img/360p/" --onefile .\holocure_fishing.py
+```
+> make sure you are in the **Automated-Holocure-Fishing** folder
+
+finally zip the **holocure_fishing.exe** and **img/** folder together
 
 # License
 
