@@ -2,3 +2,6 @@ debug/
 .venv/
 __pycache__/
 .idea/*
+holocure_fishing.*/
+holocure_fishing.exe
+*.zip
